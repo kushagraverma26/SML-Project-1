@@ -1,0 +1,179 @@
+(*
+<Program> ::= <DeclarationList> <Instruction> 
+ 
+<DeclarationList> ::= <Declaration> * 
+<Declaration> ::= <Variable> <Type> 
+<Type> ::= BooleanType | IntegerType 
+ 
+<Instruction> ::=  Skip |
+                    <Variable> <Expression> |
+                    <Instruction> * |
+                    <BooleanExpression> <Instruction> <Instruction> |
+                    <BooleanExpression> <Instruction> 
+ 
+<Expression> ::= <IntegerExpression> | <BooleanExpression> 
+<BooleanExpression> ::= <BooleanConstant> |
+                        <Variable>  |
+                        <IntergerExpression> <RelationalOp> <IntegerExpression> |
+                        <BooleanExpression> <BooleanOp> <BooleanExpression>  
+<IntegerExpression> := <IntegerConstant> |
+                        <Variable> |
+                        <IntegerExpression> <ArithmaticOp> <IntegerExpression>  
+
+<Boolean_Op> ::= And | Or   
+<Relational_Op> ::= Lt | Le | Eq | Ne | Ge | Gt 
+<Arithmatic_Op> ::= Plus | Minus | Times | Div 
+ 
+<Boolean_Constant> ::= B 
+<Integer_constant> ::= Z 
+<Variable> ::= S
+*)
+
+(* -----------------------------------Solution----------------------------------- *)
+
+(* GLL: Graal Like Language *)
+(* Defining variable from a string *)
+datatype Variable = GLL_Variable of string;
+(* Defining integer constants *)
+type Integer_Constant = int;
+(* Defining boolean constants *)
+type Boolean_Constant = bool;
+
+(* Arithmetic operations *)
+datatype Arithmetic_Op = Plus | Minus | Times | Div;
+(* Relational Operations *)
+datatype Relational_Op = Lt | Le | Eq | Ne | Ge | Gt;
+(* Boolean Operations *)
+datatype Boolean_Op = And | Or;
+
+(* Different forms of an Integer Expression (Eg: 2, n, 2 Plus 2, n Plus 2, etc.) *)
+datatype IntegerExpression = Constant_IntegerExpression of Integer_Constant |
+                                Variable_IntegerExpression of Variable |
+                                Arithmetic_Operation_IntegerExpression of (IntegerExpression * Arithmetic_Op * IntegerExpression);
+
+(* Different forms of a Boolean Expression (Eg: true, n, 2 Eq 2, n Eq 2, true And true, 2 Or n, etc.) *)
+datatype BooleanExpression = Constant_BooleanExpression of Boolean_Constant |
+                                Variable_BooleanExpression of Variable |
+                                Relational_Operation_BooleanExpression of (IntegerExpression * Relational_Op * IntegerExpression) |
+                                Boolean_Operation_BooleanExpression of (BooleanExpression * Boolean_Op * BooleanExpression);
+
+(* Different forms of an Expression *)
+datatype Expression = IntegerExpression_Expression of IntegerExpression |
+                        BooleanExpression_Expression of BooleanExpression;
+
+(* Different forms of an Instruction (Eg: a = 1, [(b = 2), (Skip)], Skip, If(a==2) Then i=i+1 else j=j-1, while(true) i=i+1, etc. ) *)
+datatype Instruction = Skip |
+                        Variable_Expression_Instruction of (Variable * Expression) |
+                        Instruction_List of Instruction list |
+                        BooleanExpression_Instruction_Instruction of (BooleanExpression * Instruction * Instruction) |
+                        BooleanExpression_Instruction of (BooleanExpression * Instruction);
+
+(* Different forms of Type *)
+datatype Type = BooleanType | IntegerType;
+(* Defining Declaration (Eg: n integer, m boolean, etc.) *)
+type Declaration = Variable * Type;
+(* Defining List of Declarations (Eg: [(n integer), (m boolean)], etc.) *)
+type DeclarationList = Declaration list;
+
+(* GLL: Graal Like Language *)
+(* Defining a Program *)
+datatype Program = GLL_Program of (DeclarationList * Instruction);
+
+
+(* 
+/*
+Sample 5
+In number theory, the aliquot sum s(n) of a positive integer n is the sum of all proper divisors of n,
+that is, all divisors of n other than n itself.
+For Example :
+Input : 12      Input : 15
+Output : 16      Output : 9
+Explanation :      Explanation :
+Proper divisors of 12 is = 1, 2, 3, 4, 6   Proper divisors of 15 is 1, 3, 5
+and sum 1 + 2 + 3 + 4 + 6 = 16    and sum 1 + 3 + 5 = 9
+*/
+
+PROGRAM aliquotSum
+{
+  n   Integer;
+  sum  Integer;
+  i  Integer;
+
+  n = 12;
+  sum = 0;
+
+  IF (n Le 0) THEN sum = 0;
+  ELSE
+  {
+   i = 1;
+   WHILE (i Lt n)
+   {
+    IF ((n Minus i Times (n Div i)) Eq 0) THEN sum = sum Plus i;
+    i = i Plus 1;
+   } 
+ }   
+}
+*)
+
+(*
+Java code for reference:
+
+import java.util.*;
+import java.lang.*;
+
+class Rextester
+{
+    public static void main(String args[])
+    {
+        int n;
+        int sum;
+        int i;
+
+        n = 12;
+        sum = 0;
+
+        if (n <= 0) {
+            sum = 0;
+        } else {
+            i = 1;
+            while (i < n) {
+                if ((n - i * (n / i)) == 0) {
+                    sum = sum + i;
+                }
+                i = i + 1;
+            }
+        }
+    }
+}
+
+*)
+
+(* -----------------------------------Solution----------------------------------- *)
+
+(* Variables and constants *)
+(* i *)
+val i = GLL_Variable("i");
+(* sum *)
+val sum = GLL_Variable("sum");
+(* n *)
+val n = GLL_Variable("n");
+(* 0 *)
+val zero = 0;
+(* 1 *)
+val one = 1;
+(* 12 *)
+val twelve = 12;
+
+(* For i + 1 *)
+(* i as an IntegerExpression *)
+val integerExpressionI = Variable_IntegerExpression(i);
+(* 1 as an IntegerExpression *)
+val integerExpressionOne = Constant_IntegerExpression(one);
+(* i + 1 as an IntegerExpression *)
+val integerExpressionIPlusOne = Arithmetic_Operation_IntegerExpression(integerExpressionI, Plus, integerExpressionOne);
+(* i + 1 as an Expression *)
+val expressionIPlusOne = IntegerExpression_Expression(integerExpressionIPlusOne);
+
+(* For i = i + 1 *)
+(* i = i + 1 as an Instruction *)
+val iEqualsIPlusOne = Variable_Expression_Instruction(i, expressionIPlusOne);
