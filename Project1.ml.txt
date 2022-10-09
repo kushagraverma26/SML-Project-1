@@ -177,3 +177,45 @@ val expressionIPlusOne = IntegerExpression_Expression(integerExpressionIPlusOne)
 (* For i = i + 1 *)
 (* i = i + 1 as an Instruction *)
 val iEqualsIPlusOne = Variable_Expression_Instruction(i, expressionIPlusOne);
+
+(* Creating the Inner if then else instruction *)
+
+(* Creating the boolean confition for if *)
+
+(* n as IntegerExpression *)
+val integerExpressionN = Variable_IntegerExpression(n);
+(* (n / i) as IntegerExpression *)
+val integerExpressionNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionN, Div, integerExpressionI)
+(* i * (n / i) as IntegerExpression *)
+val integerExpressionITimesNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionI, Times, integerExpressionNDivI)
+(* n - i * (n / i) as IntegerExpression *)
+val integerExpressionNMinusITimesNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionN, Minus, integerExpressionITimesNDivI)
+(* 0 as IntegerExpression *)
+val integerExpressionZero = Constant_IntegerExpression(zero);
+(* (n - i * (n / i)) == 0 as BooleanExpression *)
+val innerIfBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionNMinusITimesNDivI, Eq, integerExpressionZero)
+
+(* Creating Instruction for then (sum = sum + i;) *)
+
+(* sum as an IntegerExpression *)
+val integerExpressionSum = Variable_IntegerExpression(sum);
+(* sum + i as an IntegerExpression *)
+val integerExpressionSumPlusI = Arithmetic_Operation_IntegerExpression(integerExpressionSum, Plus, integerExpressionI);
+(* i + 1 as an Expression *)
+val expressionSumPlusI = IntegerExpression_Expression(integerExpressionSumPlusI);
+
+(* For sum = sum + i (Then part of inner if-then-else) *)
+(* sum = sum + i as Insstruction *)
+val sumEqualsSumPlusI = Variable_Expression_Instruction(sum, expressionSumPlusI);
+
+(* For inner if-then-else, else instruction is Skip *)
+(* Inner If-Then-Else Instruction *)
+val innerIfThenElse = BooleanExpression_Instruction_Instruction(innerIfBooleanExpression, sumEqualsSumPlusI, Skip);
+
+(* There are 2 instructions inside while loop, one is inner if-then-else, 2nd is i = i + 1. We need both as a single Instruction(using Instruction_List) to write the while statement (using BooleanExpression_Instruction)  *)
+
+(* Instructions inside while as Instruction *)
+val instructionInsideWhile = [(innerIfThenElse), (iEqualsIPlusOne)];
+
+
+
