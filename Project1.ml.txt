@@ -31,6 +31,9 @@
 
 (* -----------------------------------Solution----------------------------------- *)
 
+(* Increasing Print Depth *)
+Control.Print.printDepth := 100;
+
 (* GLL: Graal Like Language *)
 (* Defining variable from a string *)
 datatype Variable = GLL_Variable of string;
@@ -225,3 +228,46 @@ val whileBooleanExpression = Relational_Operation_BooleanExpression(integerExpre
 (* While loop as in instruction *)
 val whileInstruction = BooleanExpression_Instruction(whileBooleanExpression, instructionInsideWhile);
 
+(* i=1 as instruction *)
+(* 1 as an Expression *)
+val expressionOne = IntegerExpression_Expression(integerExpressionOne);
+(* i=1 as Instruction *)
+val instructionIEqualsOne = Variable_Expression_Instruction(i, expressionOne);
+
+(* Outer Else Instructions as Instruction List*)
+val outerElseInstructionsList = [(instructionIEqualsOne), (whileInstruction)]
+(* Outer Else Instruction List as Instruction *)
+val outerElseInstruction = Instruction_List(outerElseInstructionsList)
+
+(* Outer If Boolean condition *)
+(*n Le 0*)
+val outerIfBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionN, Le, integerExpressionZero); 
+
+(* Outer Then Condition *)
+(* Zero as an Expression *)
+val expressionZero = IntegerExpression_Expression(integerExpressionZero);
+(* sum=0 as Instruction *)
+val instructionSumEqualsZero = Variable_Expression_Instruction(sum, expressionZero);
+
+(* Outer If-Then-Else Instruction *)
+val outerIfThenElse = BooleanExpression_Instruction_Instruction(outerIfBooleanExpression, instructionSumEqualsZero, outerElseInstruction);
+
+(* 12 as an IntegerExpression *)
+val integerExpressionTwelve = Constant_IntegerExpression(twelve);
+
+(* 12 as an Expression *)
+val expressionTwelve = IntegerExpression_Expression(integerExpressionTwelve);
+
+(* n=12 as instruction*)
+val instructionNEqualsTwelve = Variable_Expression_Instruction(n, expressionTwelve);
+
+(* Instructions for Program as Instruction List *)
+val instructionListForProgram = [(instructionNEqualsTwelve), (instructionSumEqualsZero), (outerIfThenElse)];
+(* Instructions for program as Instruction *)
+val instructionsForProgram = Instruction_List(instructionListForProgram);
+
+(* Declarations as declaration List*)
+val declarationListForProgram = [(n, IntegerType), (sum, IntegerType), (i, IntegerType)];
+
+(* Final Program *)
+val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
