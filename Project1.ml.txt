@@ -214,8 +214,13 @@ val innerIfThenElse = BooleanExpression_Instruction_Instruction(innerIfBooleanEx
 
 (* There are 2 instructions inside while loop, one is inner if-then-else, 2nd is i = i + 1. We need both as a single Instruction(using Instruction_List) to write the while statement (using BooleanExpression_Instruction)  *)
 
-(* Instructions inside while as Instruction *)
-val instructionInsideWhile = [(innerIfThenElse), (iEqualsIPlusOne)];
+(* Instructions list inside while as Instruction *)
+val instructionListInsideWhile = [(innerIfThenElse), (iEqualsIPlusOne)];
 
+(* Instructions inside while as a single Instruction *)
+val instructionInsideWhile = Instruction_List(instructionListInsideWhile);
 
+(* Instruction for the while loop as a boolean expression of type Relational_Operation_BooleanExpression *)
+val whileBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionI, Lt, integerExpressionN);
+val whileInstruction = BooleanExpression_Instruction(whileBooleanExpression, instructionInsideWhile);
 
