@@ -224,3 +224,47 @@ val instructionInsideWhile = Instruction_List(instructionListInsideWhile);
 val whileBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionI, Lt, integerExpressionN);
 val whileInstruction = BooleanExpression_Instruction(whileBooleanExpression, instructionInsideWhile);
 
+(*Priyanka*)
+(* 12 as an IntegerExpression *)
+val integerExpressionTwelve = Constant_IntegerExpression(twelve);
+
+(* converting 12 as an Expression *)
+val expressionTwelve = IntegerExpression_Expression(integerExpressionTwelve);
+
+(*Assign n=12*)
+val instructionN = Variable_Expression_Instruction(n, expressionTwelve);
+
+(*Assigning sum=0*)
+(* val instructionSum = Variable_Expression_Instruction(variableSum, intexp0); *)
+
+(* Zero as an Expression *)
+(* 0 as an IntegerExpression *)
+val integerExpressionZero = Constant_IntegerExpression(zero);
+val expressionZero = IntegerExpression_Expression(integerExpressionZero);
+
+(*Assign sum=0*)
+val instructionSum = Variable_Expression_Instruction(sum, expressionZero);
+
+(*For outer if-then-else*)
+
+(*n Le 0*)
+val outerIfBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionN,Le, integerExpressionZero); 
+
+(* Creating Instruction for then sum = 0 *)
+
+(* sum = 0 as an Instruction *)
+(* val sumEqualsZero = Variable_Expression_Instruction(sum, expressionZero); *)
+(* can reuse instructionSum ??*)
+instructionSum;
+
+(*else part for outer if*)
+(*Assign i=1*)
+
+(* i=1 as an Expression *)
+val expressionIEqualsOne = IntegerExpression_Expression(integerExpressionOne);
+val instructionIEqualsOne = Variable_Expression_Instruction(i, expressionIEqualsOne);
+
+(*else part for outer if*)
+(* For outer if-then-else, else instruction is i = 1*)
+(* Outer If-Then-Else Instruction *)
+val outerIfThenElse = BooleanExpression_Instruction(outerIfBooleanExpression, instructionIEqualsOne);
