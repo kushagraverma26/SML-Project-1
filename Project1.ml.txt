@@ -205,7 +205,7 @@ val integerExpressionSumPlusI = Arithmetic_Operation_IntegerExpression(integerEx
 val expressionSumPlusI = IntegerExpression_Expression(integerExpressionSumPlusI);
 
 (* For sum = sum + i (Then part of inner if-then-else) *)
-(* sum = sum + i as Insstruction *)
+(* sum = sum + i as Instruction *)
 val sumEqualsSumPlusI = Variable_Expression_Instruction(sum, expressionSumPlusI);
 
 (* For inner if-then-else, else instruction is Skip *)
@@ -214,13 +214,14 @@ val innerIfThenElse = BooleanExpression_Instruction_Instruction(innerIfBooleanEx
 
 (* There are 2 instructions inside while loop, one is inner if-then-else, 2nd is i = i + 1. We need both as a single Instruction(using Instruction_List) to write the while statement (using BooleanExpression_Instruction)  *)
 
-(* Instructions list inside while as Instruction *)
+(* Instructions list inside while as Instruction list *)
 val instructionListInsideWhile = [(innerIfThenElse), (iEqualsIPlusOne)];
 
-(* Instructions inside while as a single Instruction *)
+(* Instructions inside while as a Instruction *)
 val instructionInsideWhile = Instruction_List(instructionListInsideWhile);
 
 (* Instruction for the while loop as a boolean expression of type Relational_Operation_BooleanExpression *)
 val whileBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionI, Lt, integerExpressionN);
+(* While loop as in instruction *)
 val whileInstruction = BooleanExpression_Instruction(whileBooleanExpression, instructionInsideWhile);
 
