@@ -513,4 +513,35 @@ val finalProgram =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
+stdIn:292.98-292.100 Warning: calling polyEqual
+val NoThisVar = fn : (Variable * Type) list -> Variable -> bool
+val ValidDecList = fn : Declaration list -> bool
+val it = true : bool
+val it = false : bool
+datatype InternalType = BoolRep | IntRep | NoDecRep
+type SymbolTable = (Variable * InternalType) list
+val SymbolTablePlusOne = fn
+  : Variable * Type -> SymbolTable -> (Variable * InternalType) list
+val FullSymbolTableCreation = fn
+  : (Variable * Type) list -> (Variable * InternalType) list
+val symbolTableForProgram =
+  [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
+   (GLL_Variable "i",IntRep)] : (Variable * InternalType) list
+stdIn:337.75 Warning: calling polyEqual
+val SearchVariableInternalType = fn
+  : Variable -> (Variable * InternalType) list -> InternalType
+val it = IntRep : InternalType
+val it = IntRep : InternalType
+val it = IntRep : InternalType
+val it = NoDecRep : InternalType
+val ValidIntExp = fn : IntegerExpression -> SymbolTable -> bool
+val it = true : bool
+val it = true : bool
+val it = true : bool
+val it = false : bool
+val ValidBooleanExp = fn : BooleanExpression -> SymbolTable -> bool
+val ValidInstruction = fn : Instruction -> SymbolTable -> bool
+exception InvalidDeclarationList
+exception InvalidProgramBody
+val ValidProgram = fn : Program -> bool
 

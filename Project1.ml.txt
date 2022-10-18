@@ -271,3 +271,124 @@ val declarationListForProgram = [(n, IntegerType), (sum, IntegerType), (i, Integ
 
 (* Final Program *)
 val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
+
+
+(* --------------------------------------Step 2: Static Semantics-------------------------------------- *)
+
+(* Validity Check for DeclarationList *)
+
+(* ----------------1--------------------- *)
+
+(* NoThisVar: DeclarationList -> Variable -> bool *)
+(* Function returns true if the input variable is not found in the input declaration list. *)
+fun NoThisVar ([])(v: Variable) = true |
+    NoThisVar ((x: Variable, y: Type) :: declarationListTail: DeclarationList)(v: Variable) = (x <> v) andalso NoThisVar(declarationListTail)(v);
+
+(* Manual testing. Can remove *)
+(* NoThisVar(declarationListForProgram)(sum);
+NoThisVar(declarationListForProgram)(GLL_Variable("testVariable")); *)
+
+(* ----------------2--------------------- *)
+
+(* ValidDecList: DeclarationList -> bool *)
+(* Returns true if no variable appears more than once  *)
+val rec ValidDecList = (fn ([]) => true |
+                        ((x, y) :: declarationListTail :DeclarationList) => NoThisVar(declarationListTail)(x) andalso ValidDecList(declarationListTail));
+
+(* Good Case, return true *)
+ValidDecList(declarationListForProgram);
+(* Bad Case, return false *)
+ValidDecList([declarationI, declarationN, declarationSum, declarationI]);
+
+(* DeclarationList -> SymbolTable *)
+(* ----------------3--------------------- *)
+datatype InternalType = IntRep | BoolRep | NoDecRep;
+
+(* ----------------4--------------------- *)
+type SymbolTable = (Variable * InternalType) list;
+
+(* ----------------5--------------------- *)
+(* SymbolTablePlusOne: Declaration -> SymbolTable -> SymbolTable *)
+(* Adds an entry to the symbol table for the given declaration *)
+val SymbolTablePlusOne = (fn (v: Variable, IntegerType) => (fn (oldSymbolTable: SymbolTable) => [(v, IntRep)] @ oldSymbolTable) |
+                            (v: Variable, BooleanType) => (fn (oldSymbolTable: SymbolTable) => [(v, BoolRep)] @ oldSymbolTable));
+
+(* ----------------6--------------------- *)
+(* FullSymbolTableCreation: DeclarationList => SymbolTable *)
+(* Creates Symboltable for given DeclarationList *)
+val rec FullSymbolTableCreation = (fn ([]) => [] |
+                                    (declarationListHead :: declarationListTail) => SymbolTablePlusOne(declarationListHead)(FullSymbolTableCreation(declarationListTail)));
+
+(* Good Case: should give symbol table *)
+val symbolTableForProgram = FullSymbolTableCreation(declarationListForProgram);
+
+(* ----------------7--------------------- *)
+(* SearchVariableInternalType: Variable -> SymbolTable -> InternalType *)
+(* returns the Internaltype for the given variable using the given SymbolTable *)
+val rec SearchVariableInternalType = (fn (x: Variable) => (fn ([]) => NoDecRep |
+                                                                ((u: Variable, v: InternalType) :: SymbolTableTail: SymbolTable) =>
+                                                                    (if x = u then v else SearchVariableInternalType(x)(SymbolTableTail))));
+
+(* Testing. 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
+(* Good cases *)
+SearchVariableInternalType(i)(symbolTableForProgram);
+SearchVariableInternalType(sum)(symbolTableForProgram);
+SearchVariableInternalType(n)(symbolTableForProgram);
+(* Bad case *)
+SearchVariableInternalType(GLL_Variable("testVariable"))(symbolTableForProgram);
+
+(* Validity of Expressions, Instructions *)
+
+(* ----------------8--------------------- *)
+(* ValidIntExp: IntExp -> SymbolTable -> bool *)
+(* Checks validity of integer expression *)
+fun ValidIntExp (Constant_IntegerExpression(c): IntegerExpression)(symbolTable: SymbolTable) = true |
+    ValidIntExp (Variable_IntegerExpression(v): IntegerExpression)(symbolTable: SymbolTable) = SearchVariableInternalType(v)(symbolTable) = IntRep |
+    ValidIntExp (Arithmetic_Operation_IntegerExpression(integerExpression1, arithmeticOperator, integerExpression2): IntegerExpression)(symbolTable: SymbolTable) = ValidIntExp(integerExpression1)(symbolTable) andalso ValidIntExp(integerExpression2)(symbolTable);
+
+(* Testing: 3 good cases 2 bad cases *)
+ValidIntExp(integerExpressionN)(symbolTableForProgram);
+ValidIntExp(integerExpressionOne)(symbolTableForProgram);
+ValidIntExp(integerExpressionSum)(symbolTableForProgram);
+(* Bad cases:*)
+ValidIntExp(Variable_IntegerExpression(GLL_Variable("testVariable")))(symbolTableForProgram);
+(* One more bad case needed *)
+
+(* ----------------9--------------------- *)
+(* ValidBooleanExp: BooleanExpression -> SymbolTable -> bool *)
+(* Checks validity of boolean expression *)
+val rec ValidBooleanExp = (fn (Constant_BooleanExpression(c): BooleanExpression) => (fn (symbolTable: SymbolTable) => true) |
+                                (Variable_BooleanExpression(v): BooleanExpression) => (fn (symbolTable: SymbolTable) => SearchVariableInternalType(v)(symbolTable) = BoolRep) |
+                                (Relational_Operation_BooleanExpression(integerExpression1, relatinalOperator, integerExpression2): BooleanExpression) => (fn (symbolTable: SymbolTable) => ValidIntExp(integerExpression1)(symbolTable) andalso ValidIntExp(integerExpression2)(symbolTable)) |
+                                (Boolean_Operation_BooleanExpression(booleanExpression1, booleanOperator, booleanExpression2): BooleanExpression) => (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression1)(symbolTable) andalso ValidBooleanExp(booleanExpression2)(symbolTable)));
+
+(* Validity Check for Instructions *)
+
+(* ----------------10--------------------- *)
+(* ValidInstruction: Instruction -> SymbolTable -> bool *)
+(* Checks validity of instruction *)
+fun ValidInstruction (Skip: Instruction) = (fn (symbolTable: SymbolTable) => true) |
+    ValidInstruction (Variable_Expression_Instruction(variable: Variable, IntegerExpression_Expression(integerExpression): Expression): Instruction) = (fn (symbolTable: SymbolTable) => ValidIntExp(integerExpression)(symbolTable) andalso (SearchVariableInternalType(variable)(symbolTable) = IntRep)) |
+    ValidInstruction (Variable_Expression_Instruction(variable: Variable, BooleanExpression_Expression(booleanExpression): Expression): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso (SearchVariableInternalType(variable)(symbolTable) = BoolRep)) |
+    ValidInstruction (Instruction_List([]): Instruction) = (fn (symbolTable: SymbolTable) => true) |
+    ValidInstruction (Instruction_List(instructionListHead :: instructionListTail): Instruction) = (fn (symbolTable: SymbolTable) => ValidInstruction(instructionListHead)(symbolTable) andalso ValidInstruction(Instruction_List(instructionListTail))(symbolTable)) |
+    ValidInstruction (BooleanExpression_Instruction_Instruction(booleanExpression, instruction1, instruction2): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso ValidInstruction(instruction1)(symbolTable) andalso ValidInstruction(instruction2)(symbolTable)) |
+    ValidInstruction (BooleanExpression_Instruction(booleanExpression, instruction): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso ValidInstruction(instruction)(symbolTable));
+
+(* Testing needed *)
+
+(* Validity Check for Program *)
+(* ----------------11--------------------- *)
+exception InvalidDeclarationList;
+
+(* ----------------12--------------------- *)
+exception InvalidProgramBody;
+
+(* ----------------13--------------------- *)
+(* ValidProgram: Program -> bool *)
+val ValidProgram = (fn (GLL_Program(declarationList: DeclarationList, programBody: Instruction)) => 
+                        if ValidDecList(declarationList)
+                            then if ValidInstruction(programBody)(FullSymbolTableCreation(declarationList))
+                                    then true
+                                        else raise InvalidProgramBody
+                                else raise InvalidDeclarationList);
