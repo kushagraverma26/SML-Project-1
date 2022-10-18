@@ -266,81 +266,8 @@ val instructionListForProgram = [(instructionNEqualsTwelve), (instructionSumEqua
 (* Instructions for program as Instruction *)
 val instructionsForProgram = Instruction_List(instructionListForProgram);
 
-(* Declarations *)
-(* Declaring n *)
-val declarationN = (n, IntegerType);
-(* Declaring sum *)
-val declarationSum = (sum, IntegerType);
-(* Declaring i *)
-val declarationI = (i, IntegerType);
 (* Declarations as declaration List*)
-val declarationListForProgram = [declarationN, declarationSum, declarationI];
+val declarationListForProgram = [(n, IntegerType), (sum, IntegerType), (i, IntegerType)];
 
 (* Final Program *)
 val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
-
-
-(* --------------------------------------Step 2: Static Semantics-------------------------------------- *)
-
-(* Validity Check for DeclarationList *)
-
-(* ----------------1--------------------- *)
-
-(* NoThisVar: DeclarationList -> Variable -> bool *)
-(* Function returns true if the input variable is not found in the input declaration list. *)
-fun NoThisVar ([])(v: Variable) = true |
-    NoThisVar ((x: Variable, y: Type) :: declarationListTail: DeclarationList)(v: Variable) = (x <> v) andalso NoThisVar(declarationListTail)(v);
-
-(* Manual testing. Can remove *)
-(* NoThisVar(declarationListForProgram)(sum);
-NoThisVar(declarationListForProgram)(GLL_Variable("testVariable")); *)
-
-(* ----------------2--------------------- *)
-
-(* ValidDecList: DeclarationList -> bool *)
-(* Returns true if no variable appears more than once  *)
-val rec ValidDecList = (fn ([]) => true |
-                        ((x, y) :: declarationListTail :DeclarationList) => NoThisVar(declarationListTail)(x) andalso ValidDecList(declarationListTail));
-
-(* Good Case, return true *)
-ValidDecList(declarationListForProgram);
-(* Bad Case, return false *)
-ValidDecList([declarationI, declarationN, declarationSum, declarationI]);
-
-(* DeclarationList -> SymbolTable *)
-(* ----------------3--------------------- *)
-datatype InternalType = IntRep | BoolRep | NoDecRep;
-
-(* ----------------4--------------------- *)
-type SymbolTable = (Variable * InternalType) list;
-
-(* ----------------5--------------------- *)
-(* SymbolTablePlusOne: Declaration -> SymbolTable -> SymbolTable *)
-(* Adds an entry to the symbol table for the given declaration *)
-val SymbolTablePlusOne = (fn (v: Variable, IntegerType) => (fn (oldSymbolTable: SymbolTable) => [(v, IntRep)] @ oldSymbolTable) |
-                            (v: Variable, BooleanType) => (fn (oldSymbolTable: SymbolTable) => [(v, BoolRep)] @ oldSymbolTable));
-
-
-(* ----------------6--------------------- *)
-(* FullSymbolTableCreation: DeclarationList => SymbolTable *)
-(* Creates Symboltable for given DeclarationList *)
-val rec FullSymbolTableCreation = (fn ([]) => [] |
-                                    (declarationListHead :: declarationListTail) => SymbolTablePlusOne(declarationListHead)(FullSymbolTableCreation(declarationListTail)));
-
-(* Good Case: should give symbol table *)
-val symbolTableForProgram = FullSymbolTableCreation(declarationListForProgram);
-
-(* ----------------7--------------------- *)
-(* SearchVariableInternalType: Variable -> SymbolTable -> InternalType *)
-(* returns the Internaltype for the given variable using the given SymbolTable *)
-val rec SearchVariableInternalType = (fn (x: Variable) => (fn ([]) => NoDecRep |
-                                                                ((u: Variable, v: InternalType) :: SymbolTableTail: SymbolTable) =>
-                                                                (if x = u then v else SearchVariableInternalType(x)(SymbolTableTail))));
-
-(* Testing. 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
-(* Good cases *)
-SearchVariableInternalType(i)(symbolTableForProgram);
-SearchVariableInternalType(sum)(symbolTableForProgram);
-SearchVariableInternalType(n)(symbolTableForProgram);
-(* Bad case *)
-SearchVariableInternalType(GLL_Variable("testVariable"))(symbolTableForProgram);

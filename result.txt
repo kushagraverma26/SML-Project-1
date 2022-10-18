@@ -454,9 +454,6 @@ val instructionsForProgram =
                       (Arithmetic_Operation_IntegerExpression
                          (Variable_IntegerExpression (GLL_Variable "i"),Plus,
                           Constant_IntegerExpression 1)))])])] : Instruction
-val declarationN = (GLL_Variable "n",IntegerType) : Variable * Type
-val declarationSum = (GLL_Variable "sum",IntegerType) : Variable * Type
-val declarationI = (GLL_Variable "i",IntegerType) : Variable * Type
 val declarationListForProgram =
   [(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
    (GLL_Variable "i",IntegerType)] : (Variable * Type) list
@@ -516,25 +513,4 @@ val finalProgram =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
-stdIn:292.98-292.100 Warning: calling polyEqual
-val NoThisVar = fn : (Variable * Type) list -> Variable -> bool
-val ValidDecList = fn : Declaration list -> bool
-val it = true : bool
-val it = false : bool
-datatype InternalType = BoolRep | IntRep | NoDecRep
-type SymbolTable = (Variable * InternalType) list
-val SymbolTablePlusOne = fn
-  : Variable * Type -> SymbolTable -> (Variable * InternalType) list
-val FullSymbolTableCreation = fn
-  : (Variable * Type) list -> (Variable * InternalType) list
-val symbolTableForProgram =
-  [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
-   (GLL_Variable "i",IntRep)] : (Variable * InternalType) list
-stdIn:338.71 Warning: calling polyEqual
-val SearchVariableInternalType = fn
-  : Variable -> (Variable * InternalType) list -> InternalType
-val it = IntRep : InternalType
-val it = IntRep : InternalType
-val it = IntRep : InternalType
-val it = NoDecRep : InternalType
 
