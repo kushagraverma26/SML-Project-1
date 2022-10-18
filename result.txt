@@ -454,6 +454,9 @@ val instructionsForProgram =
                       (Arithmetic_Operation_IntegerExpression
                          (Variable_IntegerExpression (GLL_Variable "i"),Plus,
                           Constant_IntegerExpression 1)))])])] : Instruction
+val declarationN = (GLL_Variable "n",IntegerType) : Variable * Type
+val declarationSum = (GLL_Variable "sum",IntegerType) : Variable * Type
+val declarationI = (GLL_Variable "i",IntegerType) : Variable * Type
 val declarationListForProgram =
   [(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
    (GLL_Variable "i",IntegerType)] : (Variable * Type) list
@@ -544,4 +547,4 @@ val ValidInstruction = fn : Instruction -> SymbolTable -> bool
 exception InvalidDeclarationList
 exception InvalidProgramBody
 val ValidProgram = fn : Program -> bool
-
+- 

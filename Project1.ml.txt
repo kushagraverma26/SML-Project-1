@@ -266,8 +266,15 @@ val instructionListForProgram = [(instructionNEqualsTwelve), (instructionSumEqua
 (* Instructions for program as Instruction *)
 val instructionsForProgram = Instruction_List(instructionListForProgram);
 
+(* Declarations *)
+(* Declaring n *)
+val declarationN = (n, IntegerType);
+(* Declaring sum *)
+val declarationSum = (sum, IntegerType);
+(* Declaring i *)
+val declarationI = (i, IntegerType);
 (* Declarations as declaration List*)
-val declarationListForProgram = [(n, IntegerType), (sum, IntegerType), (i, IntegerType)];
+val declarationListForProgram = [declarationN, declarationSum, declarationI];
 
 (* Final Program *)
 val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
