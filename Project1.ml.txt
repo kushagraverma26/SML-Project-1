@@ -363,11 +363,11 @@ fun ValidIntExp(Constant_IntegerExpression(v) : IntegerExpression)(st : SymbolTa
 (* Testing: 3 good cases 2 bad cases *)
 (* GoodCases: Should return true *)
 (* Should return true *)
-val firstGoodCaseFor8 = ValidIntExp(integerExpressionN)(symbolTableForProgram);
+val firstGoodCaseFor8 = ValidIntExp(integerExpressionOne)(symbolTableForProgram);
 (* Should return true *)
-val secondGoodCaseFor8 = ValidIntExp(integerExpressionOne)(symbolTableForProgram);
+val secondGoodCaseFor8 = ValidIntExp(integerExpressionI)(symbolTableForProgram);
 (* Should return true *)
-val thirdGoodCaseFor8 = ValidIntExp(integerExpressionSum)(symbolTableForProgram);
+val thirdGoodCaseFor8 = ValidIntExp(integerExpressionIPlusOne)(symbolTableForProgram);
 (* Bad cases: Should return false*)
 (* Should Return false *)
 val firstBadCaseFor8 = ValidIntExp(Variable_IntegerExpression(badVariable))(symbolTableForProgram);
