@@ -271,3 +271,90 @@ val declarationListForProgram = [(n, IntegerType), (sum, IntegerType), (i, Integ
 
 (* Final Program *)
 val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
+
+
+
+
+(* ********************* Step 2 ******************** *)
+
+                (* function 1 *)
+(* NoThisVar: DeclarationList -> Variable -> bool *)
+fun NoThisVar([])(v: Variable) = true |
+    NoThisVar((x: Variable, y: Type) :: declarationList_tail)(v: Variable)
+    = (x <> v) andalso NoThisVar(declarationList_tail)(v);
+
+                (* function 2 *)
+(* ValidDecList: DeclarationList -> Boolean *)
+val rec ValidDecList = (fn([]) => true |
+                       ((x,y) :: declarationList_tail : DeclarationList) 
+                       => NoThisVar(declarationList_tail)(x)
+                       andalso ValidDecList(declarationList_tail));
+
+                (* function 3 *)
+datatype InternalType = IntegerRepresentation | 
+                        BooleanRepresentation |
+                        NoDecRepresentation;
+
+                (* function 4 *)
+type SymbolTable = (Variable * InternalType) list;
+
+                (* function 5 *)
+(* SymbolTablePlusOne: Declaration -> SymbolTable -> SymbolTable *)
+val SymbolTablePlusOne = (fn(v: Variable, IntegerType) => (fn(oldSymbolTable: SymbolTable)
+                       => [(v, IntegerRepresentation)] @ oldSymbolTable) |
+                       (v: Variable, BooleanType) => (fn(oldSymbolTable: SymbolTable)
+                       => [(v, BooleanRepresentation)] @ oldSymbolTable));
+                        
+
+                (* function 6 *)   (* ***question**** *)
+(* FullSymbolTableCreation: DeclarationList -> SymbolTable *)
+val rec FullSymbolTableCreation = (fn([]) => [] |
+                                  (declarationList_head :: declarationList_tail) 
+                                  => SymbolTablePlusOne(declarationList_head)
+                                  (FullSymbolTableCreation(declarationList_tail)));
+
+                                   (* function 7 *) 
+(* SearchVarInternalType: Variable -> SymbolTable -> InternalType *)
+
+val rec SearchVarInternalType = (fn(x: Variable) =>
+                                (fn([]) => NoDecRepresentation |
+                                ((u: Variable, v: InternalType) :: SymbolTable_tail: SymbolTable)
+                                => (if x = u then v
+                                    else SearchVarInternalType(x)(SymbolTable_tail))));
+
+                                    (* function 8 *) 
+(* ValidIntExp: IntExp -> SymbolTable -> Bool *)
+
+fun ValidIntExp(Constant_IntegerExpression(v) : IntegerExpression)(symTable : SymbolTable) = true |
+    ValidIntExp(Variable_IntegerExpression(v) : IntegerExpression)(symTable : SymbolTable) = SearchVarInternalType(v)(symTable) = IntegerRepresentation |
+    ValidIntExp(Arithmetic_Operation_IntegerExpression(intExpr1, arithmeticOperator, intExpr2): IntegerExpression)(symTable : SymbolTable) =
+    ValidIntExp(intExpr1)(symTable) andalso ValidIntExp(intExpr2)(symTable);
+
+                                    (* function 9 *) 
+(* ValidBoolExp: BoolExp -> SymbolTable -> Bool *)
+val rec ValidBoolExp = (fn (Constant_BooleanExpression(v): BooleanExpression) => (fn (symTable: SymbolTable) => true) |
+                                (Variable_BooleanExpression(v): BooleanExpression) => (fn (symTable: SymbolTable) => SearchVarInternalType(v)(symTable) = BooleanRepresentation) |
+                                (Relational_Operation_BooleanExpression(integerExpression1, relatinalOperator, integerExpression2): BooleanExpression) => (fn (symTable: SymbolTable) => ValidIntExp(integerExpression1)(symTable) andalso ValidIntExp(integerExpression2)(symTable)) |
+                                (Boolean_Operation_BooleanExpression(booleanExpression1, booleanOperator, booleanExpression2): BooleanExpression) => (fn (symTable: SymbolTable) => ValidBoolExp(booleanExpression1)(symTable) andalso ValidBoolExp(booleanExpression2)(symTable)));
+
+
+(* Testing:4 good cases 1 bad cases *)
+(* Good Symbol Table*)
+val symbolTableForProgram = FullSymbolTableCreation(declarationListForProgram);
+
+(* Good Case 1 *)
+ValidBoolExp(innerIfBooleanExpression)(symbolTableForProgram);
+
+(* Good Case 2 *)
+ValidBoolExp(whileBooleanExpression)(symbolTableForProgram);
+
+(* Good Case 3 *)
+ValidBoolExp(outerIfBooleanExpression)(symbolTableForProgram);
+
+(* Good Case 4 *)
+val twelvee = GLL_Variable("12");
+val integerExpressionTwelvee = Variable_IntegerExpression(twelvee);
+val testBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionTwelvee, Le, integerExpressionI); 
+
+(* 1 bad case *)
+ValidBoolExp(Relational_Operation_BooleanExpression(Variable_IntegerExpression(GLL_Variable("expr1")), Eq,  Variable_IntegerExpression(GLL_Variable("expr2"))))(symbolTableForProgram);
