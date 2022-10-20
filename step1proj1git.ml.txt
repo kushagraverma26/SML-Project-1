@@ -1,0 +1,455 @@
+(*
+<Program> ::= <DeclarationList> <Instruction> 
+ 
+<DeclarationList> ::= <Declaration> * 
+<Declaration> ::= <Variable> <Type> 
+<Type> ::= BooleanType | IntegerType 
+ 
+<Instruction> ::=  Skip |
+                    <Variable> <Expression> |
+                    <Instruction> * |
+                    <BooleanExpression> <Instruction> <Instruction> |
+                    <BooleanExpression> <Instruction> 
+ 
+<Expression> ::= <IntegerExpression> | <BooleanExpression> 
+<BooleanExpression> ::= <BooleanConstant> |
+                        <Variable>  |
+                        <IntergerExpression> <RelationalOp> <IntegerExpression> |
+                        <BooleanExpression> <BooleanOp> <BooleanExpression>  
+<IntegerExpression> := <IntegerConstant> |
+                        <Variable> |
+                        <IntegerExpression> <ArithmaticOp> <IntegerExpression>  
+
+<Boolean_Op> ::= And | Or   
+<Relational_Op> ::= Lt | Le | Eq | Ne | Ge | Gt 
+<Arithmatic_Op> ::= Plus | Minus | Times | Div 
+ 
+<Boolean_Constant> ::= B 
+<Integer_constant> ::= Z 
+<Variable> ::= S
+*)
+
+(* -----------------------------------Solution----------------------------------- *)
+
+(* Increasing Print Depth *)
+Control.Print.printDepth := 100;
+
+(* GLL: Graal Like Language *)
+(* Defining variable from a string *)
+datatype Variable = GLL_Variable of string;
+(* Defining integer constants *)
+type Integer_Constant = int;
+(* Defining boolean constants *)
+type Boolean_Constant = bool;
+
+(* Arithmetic operations *)
+datatype Arithmetic_Op = Plus | Minus | Times | Div;
+(* Relational Operations *)
+datatype Relational_Op = Lt | Le | Eq | Ne | Ge | Gt;
+(* Boolean Operations *)
+datatype Boolean_Op = And | Or;
+
+(* Different forms of an Integer Expression (Eg: 2, n, 2 Plus 2, n Plus 2, etc.) *)
+datatype IntegerExpression = Constant_IntegerExpression of Integer_Constant |
+                                Variable_IntegerExpression of Variable |
+                                Arithmetic_Operation_IntegerExpression of (IntegerExpression * Arithmetic_Op * IntegerExpression);
+
+(* Different forms of a Boolean Expression (Eg: true, n, 2 Eq 2, n Eq 2, true And true, 2 Or n, etc.) *)
+datatype BooleanExpression = Constant_BooleanExpression of Boolean_Constant |
+                                Variable_BooleanExpression of Variable |
+                                Relational_Operation_BooleanExpression of (IntegerExpression * Relational_Op * IntegerExpression) |
+                                Boolean_Operation_BooleanExpression of (BooleanExpression * Boolean_Op * BooleanExpression);
+
+(* Different forms of an Expression *)
+datatype Expression = IntegerExpression_Expression of IntegerExpression |
+                        BooleanExpression_Expression of BooleanExpression;
+
+(* Different forms of an Instruction (Eg: a = 1, [(b = 2), (Skip)], Skip, If(a==2) Then i=i+1 else j=j-1, while(true) i=i+1, etc. ) *)
+datatype Instruction = Skip |
+                        Variable_Expression_Instruction of (Variable * Expression) |
+                        Instruction_List of Instruction list |
+                        BooleanExpression_Instruction_Instruction of (BooleanExpression * Instruction * Instruction) |
+                        BooleanExpression_Instruction of (BooleanExpression * Instruction);
+
+(* Different forms of Type *)
+datatype Type = BooleanType | IntegerType;
+(* Defining Declaration (Eg: n integer, m boolean, etc.) *)
+type Declaration = Variable * Type;
+(* Defining List of Declarations (Eg: [(n integer), (m boolean)], etc.) *)
+type DeclarationList = Declaration list;
+
+(* GLL: Graal Like Language *)
+(* Defining a Program *)
+datatype Program = GLL_Program of (DeclarationList * Instruction);
+
+
+(* 
+/*
+Sample 5
+In number theory, the aliquot sum s(n) of a positive integer n is the sum of all proper divisors of n,
+that is, all divisors of n other than n itself.
+For Example :
+Input : 12      Input : 15
+Output : 16      Output : 9
+Explanation :      Explanation :
+Proper divisors of 12 is = 1, 2, 3, 4, 6   Proper divisors of 15 is 1, 3, 5
+and sum 1 + 2 + 3 + 4 + 6 = 16    and sum 1 + 3 + 5 = 9
+*/
+
+PROGRAM aliquotSum
+{
+  n   Integer;
+  sum  Integer;
+  i  Integer;
+
+  n = 12;
+  sum = 0;
+
+  IF (n Le 0) THEN sum = 0;
+  ELSE
+  {
+   i = 1;
+   WHILE (i Lt n)
+   {
+    IF ((n Minus i Times (n Div i)) Eq 0) THEN sum = sum Plus i;
+    i = i Plus 1;
+   } 
+ }   
+}
+*)
+
+(*
+Java code for reference:
+
+import java.util.*;
+import java.lang.*;
+
+class Rextester
+{
+    public static void main(String args[])
+    {
+        int n;
+        int sum;
+        int i;
+
+        n = 12;
+        sum = 0;
+
+        if (n <= 0) {
+            sum = 0;
+        } else {
+            i = 1;
+            while (i < n) {
+                if ((n - i * (n / i)) == 0) {
+                    sum = sum + i;
+                }
+                i = i + 1;
+            }
+        }
+    }
+}
+
+*)
+
+(* -----------------------------------Solution----------------------------------- *)
+
+(* Variables and constants *)
+(* i *)
+val i = GLL_Variable("i");
+(* sum *)
+val sum = GLL_Variable("sum");
+(* n *)
+val n = GLL_Variable("n");
+(* 0 *)
+val zero = 0;
+(* 1 *)
+val one = 1;
+(* 12 *)
+val twelve = 12;
+
+(* For i + 1 *)
+(* i as an IntegerExpression *)
+val integerExpressionI = Variable_IntegerExpression(i);
+(* 1 as an IntegerExpression *)
+val integerExpressionOne = Constant_IntegerExpression(one);
+(* i + 1 as an IntegerExpression *)
+val integerExpressionIPlusOne = Arithmetic_Operation_IntegerExpression(integerExpressionI, Plus, integerExpressionOne);
+(* i + 1 as an Expression *)
+val expressionIPlusOne = IntegerExpression_Expression(integerExpressionIPlusOne);
+
+(* For i = i + 1 *)
+(* i = i + 1 as an Instruction *)
+val iEqualsIPlusOne = Variable_Expression_Instruction(i, expressionIPlusOne);
+
+(* Creating the Inner if then else instruction *)
+
+(* Creating the boolean confition for if *)
+
+(* n as IntegerExpression *)
+val integerExpressionN = Variable_IntegerExpression(n);
+(* (n / i) as IntegerExpression *)
+val integerExpressionNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionN, Div, integerExpressionI)
+(* i * (n / i) as IntegerExpression *)
+val integerExpressionITimesNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionI, Times, integerExpressionNDivI)
+(* n - i * (n / i) as IntegerExpression *)
+val integerExpressionNMinusITimesNDivI = Arithmetic_Operation_IntegerExpression(integerExpressionN, Minus, integerExpressionITimesNDivI)
+(* 0 as IntegerExpression *)
+val integerExpressionZero = Constant_IntegerExpression(zero);
+(* (n - i * (n / i)) == 0 as BooleanExpression *)
+val innerIfBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionNMinusITimesNDivI, Eq, integerExpressionZero)
+
+(* Creating Instruction for then (sum = sum + i;) *)
+
+(* sum as an IntegerExpression *)
+val integerExpressionSum = Variable_IntegerExpression(sum);
+(* sum + i as an IntegerExpression *)
+val integerExpressionSumPlusI = Arithmetic_Operation_IntegerExpression(integerExpressionSum, Plus, integerExpressionI);
+(* i + 1 as an Expression *)
+val expressionSumPlusI = IntegerExpression_Expression(integerExpressionSumPlusI);
+
+(* For sum = sum + i (Then part of inner if-then-else) *)
+(* sum = sum + i as Instruction *)
+val sumEqualsSumPlusI = Variable_Expression_Instruction(sum, expressionSumPlusI);
+
+(* For inner if-then-else, else instruction is Skip *)
+(* Inner If-Then-Else Instruction *)
+val innerIfThenElse = BooleanExpression_Instruction_Instruction(innerIfBooleanExpression, sumEqualsSumPlusI, Skip);
+
+(* There are 2 instructions inside while loop, one is inner if-then-else, 2nd is i = i + 1. We need both as a single Instruction(using Instruction_List) to write the while statement (using BooleanExpression_Instruction)  *)
+
+(* Instructions list inside while as Instruction list *)
+val instructionListInsideWhile = [(innerIfThenElse), (iEqualsIPlusOne)];
+
+(* Instructions inside while as a Instruction *)
+val instructionInsideWhile = Instruction_List(instructionListInsideWhile);
+
+(* Instruction for the while loop as a boolean expression of type Relational_Operation_BooleanExpression *)
+val whileBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionI, Lt, integerExpressionN);
+(* While loop as in instruction *)
+val whileInstruction = BooleanExpression_Instruction(whileBooleanExpression, instructionInsideWhile);
+
+(* i=1 as instruction *)
+(* 1 as an Expression *)
+val expressionOne = IntegerExpression_Expression(integerExpressionOne);
+(* i=1 as Instruction *)
+val instructionIEqualsOne = Variable_Expression_Instruction(i, expressionOne);
+
+(* Outer Else Instructions as Instruction List*)
+val outerElseInstructionsList = [(instructionIEqualsOne), (whileInstruction)]
+(* Outer Else Instruction List as Instruction *)
+val outerElseInstruction = Instruction_List(outerElseInstructionsList)
+
+(* Outer If Boolean condition *)
+(*n Le 0*)
+val outerIfBooleanExpression = Relational_Operation_BooleanExpression(integerExpressionN, Le, integerExpressionZero); 
+
+(* Outer Then Condition *)
+(* Zero as an Expression *)
+val expressionZero = IntegerExpression_Expression(integerExpressionZero);
+(* sum=0 as Instruction *)
+val instructionSumEqualsZero = Variable_Expression_Instruction(sum, expressionZero);
+
+(* Outer If-Then-Else Instruction *)
+val outerIfThenElse = BooleanExpression_Instruction_Instruction(outerIfBooleanExpression, instructionSumEqualsZero, outerElseInstruction);
+
+(* 12 as an IntegerExpression *)
+val integerExpressionTwelve = Constant_IntegerExpression(twelve);
+
+(* 12 as an Expression *)
+val expressionTwelve = IntegerExpression_Expression(integerExpressionTwelve);
+
+(* n=12 as instruction*)
+val instructionNEqualsTwelve = Variable_Expression_Instruction(n, expressionTwelve);
+
+(* Instructions for Program as Instruction List *)
+val instructionListForProgram = [(instructionNEqualsTwelve), (instructionSumEqualsZero), (outerIfThenElse)];
+(* Instructions for program as Instruction *)
+val instructionsForProgram = Instruction_List(instructionListForProgram);
+
+(* Declarations *)
+(* Declaring n *)
+val declarationN = (n, IntegerType);
+(* Declaring sum *)
+val declarationSum = (sum, IntegerType);
+(* Declaring i *)
+val declarationI = (i, IntegerType);
+(* Declarations as declaration List*)
+val declarationListForProgram = [declarationN, declarationSum, declarationI];
+
+(* Final Program *)
+val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram);
+
+(* Step2 Static Semantics*)
+(* function 1 *)
+(* NoThisVar : DeclarationList -> Variable -> Bool *)
+fun NoThisVar ([])(v:Variable) = true |
+    NoThisVar((x:Variable, y:Type) :: declarationListTail : DeclarationList) (v:Variable) = (x <> v) andalso NoThisVar(declarationListTail) (v);
+
+(* Good test cases *)
+val testFunction1Good1 = NoThisVar(declarationListForProgram)(sum);
+val testFunction1Good2 = NoThisVar(declarationListForProgram)(GLL_Variable("TestVariable"));
+
+(* Bad test cases *)
+(* val testFunction1Bad1 = NoThisVar(declarationListForProgram)(newSum); *)
+
+(* function 2 *)
+(* ValidDecList : Declarationlist -> Bool *)
+(* val recValidDecList = (fn ([]) => true |
+                      ((x,y) :: declarationListTail : declarationList) 
+                      => NoThisVar(declarationListTail)(x) andalso ValidDecList (declarationListTail)); *)
+
+
+(* Validity Check for Instructions *)
+(* ----------------- *)
+
+(* --------------------------------------Step 2: Static Semantics-------------------------------------- *)
+
+(* Validity Check for DeclarationList *)
+
+(* ----------------1--------------------- *)
+
+(* NoThisVar: DeclarationList -> Variable -> bool *)
+(* Function returns true if the input variable is not found in the input declaration list. *)
+fun NoThisVar ([])(v: Variable) = true |
+    NoThisVar ((x: Variable, y: Type) :: declarationListTail: DeclarationList)(v: Variable) = (x <> v) andalso NoThisVar(declarationListTail)(v);
+
+(* Manual testing. Can remove *)
+(* NoThisVar(declarationListForProgram)(sum);
+NoThisVar(declarationListForProgram)(GLL_Variable("testVariable")); *)
+
+(* ----------------2--------------------- *)
+
+(* ValidDecList: DeclarationList -> bool *)
+(* Returns true if no variable appears more than once  *)
+val rec ValidDecList = (fn ([]) => true |
+                        ((x, y) :: declarationListTail :DeclarationList) => NoThisVar(declarationListTail)(x) andalso ValidDecList(declarationListTail));
+
+(* Good Case, return true *)
+ValidDecList(declarationListForProgram);
+(* Bad Case, return false *)
+ValidDecList([declarationI, declarationN, declarationSum, declarationI]);
+
+(* DeclarationList -> SymbolTable *)
+(* ----------------3--------------------- *)
+datatype InternalType = IntRep | BoolRep | NoDecRep;
+
+(* ----------------4--------------------- *)
+type SymbolTable = (Variable * InternalType) list;
+
+(* ----------------5--------------------- *)
+(* SymbolTablePlusOne: Declaration -> SymbolTable -> SymbolTable *)
+(* Adds an entry to the symbol table for the given declaration *)
+val SymbolTablePlusOne = (fn (v: Variable, IntegerType) => (fn (oldSymbolTable: SymbolTable) => [(v, IntRep)] @ oldSymbolTable) |
+                            (v: Variable, BooleanType) => (fn (oldSymbolTable: SymbolTable) => [(v, BoolRep)] @ oldSymbolTable));
+
+(* ----------------6--------------------- *)
+(* FullSymbolTableCreation: DeclarationList => SymbolTable *)
+(* Creates Symboltable for given DeclarationList *)
+val rec FullSymbolTableCreation = (fn ([]) => [] |
+                                    (declarationListHead :: declarationListTail) => SymbolTablePlusOne(declarationListHead)(FullSymbolTableCreation(declarationListTail)));
+
+(* Good Case: should give symbol table *)
+val symbolTableForProgram = FullSymbolTableCreation(declarationListForProgram);
+
+(* ----------------7--------------------- *)
+(* SearchVariableInternalType: Variable -> SymbolTable -> InternalType *)
+(* returns the Internaltype for the given variable using the given SymbolTable *)
+val rec SearchVariableInternalType = (fn (x: Variable) => (fn ([]) => NoDecRep |
+                                                                ((u: Variable, v: InternalType) :: SymbolTableTail: SymbolTable) =>
+                                                                    (if x = u then v else SearchVariableInternalType(x)(SymbolTableTail))));
+
+(* Testing. 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
+(* Good cases *)
+SearchVariableInternalType(i)(symbolTableForProgram);
+SearchVariableInternalType(sum)(symbolTableForProgram);
+SearchVariableInternalType(n)(symbolTableForProgram);
+(* Bad case *)
+SearchVariableInternalType(GLL_Variable("testVariable"))(symbolTableForProgram);
+
+(* Validity of Expressions, Instructions *)
+
+(* ----------------8--------------------- *)
+(* ValidIntExp: IntExp -> SymbolTable -> bool *)
+(* Checks validity of integer expression *)
+fun ValidIntExp (Constant_IntegerExpression(c): IntegerExpression)(symbolTable: SymbolTable) = true |
+    ValidIntExp (Variable_IntegerExpression(v): IntegerExpression)(symbolTable: SymbolTable) = SearchVariableInternalType(v)(symbolTable) = IntRep |
+    ValidIntExp (Arithmetic_Operation_IntegerExpression(integerExpression1, arithmeticOperator, integerExpression2): IntegerExpression)(symbolTable: SymbolTable) = ValidIntExp(integerExpression1)(symbolTable) andalso ValidIntExp(integerExpression2)(symbolTable);
+
+(* Testing: 3 good cases 2 bad cases *)
+ValidIntExp(integerExpressionN)(symbolTableForProgram);
+ValidIntExp(integerExpressionOne)(symbolTableForProgram);
+ValidIntExp(integerExpressionSum)(symbolTableForProgram);
+(* Bad cases:*)
+ValidIntExp(Variable_IntegerExpression(GLL_Variable("testVariable")))(symbolTableForProgram);
+(* One more bad case needed *)
+
+(* ----------------9--------------------- *)
+(* ValidBooleanExp: BooleanExpression -> SymbolTable -> bool *)
+(* Checks validity of boolean expression *)
+val rec ValidBooleanExp = (fn (Constant_BooleanExpression(c): BooleanExpression) => (fn (symbolTable: SymbolTable) => true) |
+                                (Variable_BooleanExpression(v): BooleanExpression) => (fn (symbolTable: SymbolTable) => SearchVariableInternalType(v)(symbolTable) = BoolRep) |
+                                (Relational_Operation_BooleanExpression(integerExpression1, relatinalOperator, integerExpression2): BooleanExpression) => (fn (symbolTable: SymbolTable) => ValidIntExp(integerExpression1)(symbolTable) andalso ValidIntExp(integerExpression2)(symbolTable)) |
+                                (Boolean_Operation_BooleanExpression(booleanExpression1, booleanOperator, booleanExpression2): BooleanExpression) => (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression1)(symbolTable) andalso ValidBooleanExp(booleanExpression2)(symbolTable)));
+
+(* Validity Check for Instructions *)
+(* ----------------10--------------------- *)
+(* ValidInstruction: Instruction -> SymbolTable -> bool *)
+(* Checks validity of instruction *)
+fun ValidInstruction (Skip: Instruction) = (fn (symbolTable: SymbolTable) => true) |
+    ValidInstruction (Variable_Expression_Instruction(variable: Variable, IntegerExpression_Expression(integerExpression): Expression): Instruction) = (fn (symbolTable: SymbolTable) => ValidIntExp(integerExpression)(symbolTable) andalso (SearchVariableInternalType(variable)(symbolTable) = IntRep)) |
+    ValidInstruction (Variable_Expression_Instruction(variable: Variable, BooleanExpression_Expression(booleanExpression): Expression): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso (SearchVariableInternalType(variable)(symbolTable) = BoolRep)) |
+    ValidInstruction (Instruction_List([]): Instruction) = (fn (symbolTable: SymbolTable) => true) |
+    ValidInstruction (Instruction_List(instructionListHead :: instructionListTail): Instruction) = (fn (symbolTable: SymbolTable) => ValidInstruction(instructionListHead)(symbolTable) andalso ValidInstruction(Instruction_List(instructionListTail))(symbolTable)) |
+    ValidInstruction (BooleanExpression_Instruction_Instruction(booleanExpression, instruction1, instruction2): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso ValidInstruction(instruction1)(symbolTable) andalso ValidInstruction(instruction2)(symbolTable)) |
+    ValidInstruction (BooleanExpression_Instruction(booleanExpression, instruction): Instruction) = (fn (symbolTable: SymbolTable) => ValidBooleanExp(booleanExpression)(symbolTable) andalso ValidInstruction(instruction)(symbolTable));
+
+(* Priyanka *)
+(* function 10 test case *)
+val funDefinitionDecList = ValidDecList(declarationListForProgram);
+
+(* val testFunction10_1 = Variable_Expression_Instruction (sum, integerExpressionOne); *)
+val testFunction10_1 = ValidInstruction(Variable_Expression_Instruction (sum, expressionOne))(symbolTableForProgram); (*provide 2 input params-instruction and symbol table and it returns boolean value*)
+val testFunction10_2 = ValidInstruction(Variable_Expression_Instruction (n, expressionTwelve))(symbolTableForProgram);
+val testFunction10_3 = ValidInstruction(Variable_Expression_Instruction (i, expressionOne))(symbolTableForProgram);
+(* val testFunction10_4 =  *)
+
+
+(* bad case *)
+ val testVar = GLL_Variable("abc");
+val testFunction10_5 = GLL_Variable("testVariable");
+(* bad case *)
+val testFunction10_6 = ValidInstruction(Variable_Expression_Instruction( testVar, expressionOne))(symbolTableForProgram); 
+(* val testFunction10_7 = ValidInstruction(Instruction_List (declarationListForProgram))(symbolTableForProgram); *)
+val testFunction10_8 = ValidInstruction(BooleanExpression_Instruction_Instruction(outerIfBooleanExpression, outerIfThenElse, outerElseInstruction))(symbolTableForProgram);
+val testFunction10_9 = ValidInstruction(BooleanExpression_Instruction(outerIfBooleanExpression, whileInstruction))(symbolTableForProgram);
+
+
+(* outerIfBooleanExpression *)
+val two = 2;
+(* 2 as an IntegerExpression *)
+val integerExpressionTwo = Constant_IntegerExpression(two);
+(* i + 2 as an IntegerExpression *)
+val integerExpressionIPlusTwo = Arithmetic_Operation_IntegerExpression(integerExpressionI, Plus, integerExpressionTwo);
+(* i + 2 as an Expression *)
+val expressionIPlusTwo = IntegerExpression_Expression(integerExpressionIPlusTwo);
+
+(* i = i + 2 as an Instruction *)
+val iEqualsIPlusTwo = Variable_Expression_Instruction(i, expressionIPlusTwo);
+
+(* bad for loop *)
+
+val testFunction10_10 = ValidInstruction(BooleanExpression_Instruction(outerIfBooleanExpression, iEqualsIPlusTwo))(symbolTableForProgram);
+
+(* bad case instruction*)
+val badCase = GLL_Variable("badcase");
+(* badCase as an IntegerExpression *)
+val integerExpressionBadCase = Variable_IntegerExpression(badCase);
+(* bad case as an Expression *)
+val expressionBadCase = IntegerExpression_Expression(integerExpressionBadCase);
+
+(* badcase as Instruction *)
+val badCaseInstruction = Variable_Expression_Instruction(GLL_Variable("badcase"), expressionBadCase);
+
+val testFunction10_11 = ValidInstruction(BooleanExpression_Instruction(outerIfBooleanExpression, badCaseInstruction))(symbolTableForProgram);
+
+
