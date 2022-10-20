@@ -359,6 +359,7 @@ fun ValidIntExp(Constant_IntegerExpression(v) : IntegerExpression)(st : SymbolTa
     ValidIntExp(Arithmetic_Operation_IntegerExpression(intExpr1, arithmeticOperator, intExpr2): IntegerExpression)(st : SymbolTable) =
         ValidIntExp(intExpr1)(st) andalso ValidIntExp(intExpr2)(st);
 
+(* FIXME: *)
 (* Testing: 3 good cases 2 bad cases *)
 (* GoodCases: Should return true *)
 (* Should return true *)
@@ -411,4 +412,89 @@ val booleanOperatorBooleanExpressionForTesting = Boolean_Operation_BooleanExpres
 val fourthGoodCaseFor9 = ValidBoolExp(booleanOperatorBooleanExpressionForTesting)(symbolTableForProgram);
 (* 1 bad case *)
 (* Should Return false *)
-val badCaseFor9 = ValidBoolExp(Relational_Operation_BooleanExpression(badIntegerExpression, Eq,  integerExpressionN))(symbolTableForProgram);
+val badCaseFor9 = ValidBoolExp(Relational_Operation_BooleanExpression(badIntegerExpression, Eq, integerExpressionN))(symbolTableForProgram);
+
+(* Validity Check for Instructions *)
+(* ----------------10--------------------- *)
+(* ValidInstruction: Instruction -> SymbolTable -> bool *)
+fun ValidInstruction(Skip: Instruction) =
+                        (fn (st: SymbolTable) => true) |
+    ValidInstruction(Variable_Expression_Instruction(variable: Variable, IntegerExpression_Expression(integerExpression): Expression): Instruction) =
+                        (fn (st: SymbolTable) =>
+                            ValidIntExp(integerExpression)(st) andalso (SearchVarInternalType(variable)(st) = IntRep)) |
+    ValidInstruction(Variable_Expression_Instruction(variable: Variable, BooleanExpression_Expression(booleanExpression): Expression): Instruction) =
+                        (fn (st: SymbolTable) =>
+                            ValidBoolExp(booleanExpression)(st) andalso (SearchVarInternalType(variable)(st) = BoolRep)) |
+    ValidInstruction(Instruction_List([]): Instruction) =
+                        (fn (st: SymbolTable) => true) |
+    ValidInstruction(Instruction_List(instructionList_head :: declarationList_tail): Instruction) =
+                        (fn (st: SymbolTable) =>
+                            ValidInstruction(instructionList_head)(st) andalso ValidInstruction(Instruction_List(declarationList_tail))(st)) |
+    ValidInstruction(BooleanExpression_Instruction_Instruction(booleanExpression, instruction1, instruction2): Instruction) =
+                        (fn (st: SymbolTable) =>
+                            ValidBoolExp(booleanExpression)(st) andalso ValidInstruction(instruction1)(st) andalso ValidInstruction(instruction2)(st)) |
+    ValidInstruction(BooleanExpression_Instruction(booleanExpression, instruction): Instruction) =
+                        (fn (st: SymbolTable) =>
+                            ValidBoolExp(booleanExpression)(st) andalso ValidInstruction(instruction)(st));
+
+(* Testing: 5 good cases, 2 bad cases *)
+(* Good cases: should return true *)
+(* Good case for integer assignment *)
+val firstGoodCaseFor10 = ValidInstruction(instructionIEqualsOne)(symbolTableForProgram);
+(* Boolean Assignment Instruction for testing *)
+val booleanAssignmentInstruction = Variable_Expression_Instruction(booleanVariable, BooleanExpression_Expression(whileBooleanExpression));
+(* Good case for boolean assignment *)
+(* Should return true *)
+val secondGoodCaseFor10 = ValidInstruction(booleanAssignmentInstruction)(symbolTableWithBool);
+(* Good case for instruction list from our program *)
+(* Should return true *)
+val thirdGoodCaseFor10 = ValidInstruction(instructionsForProgram)(symbolTableForProgram);
+(* Good case for if-then-else: using if-then-else from our program *)
+(* Should return true *)
+val fourthGoodCaseFor10 = ValidInstruction(outerIfThenElse)(symbolTableForProgram);
+(* Good case for while loop from our program *)
+(* Should return true *)
+val fifthGoodCaseFor10 = ValidInstruction(whileInstruction)(symbolTableForProgram);
+(* Bad cases: should return false *)
+(* Bad assignment *)
+(* Should return false *)
+val firstBadCaseFor10 = ValidInstruction(Variable_Expression_Instruction(booleanVariable, expressionOne))(symbolTableWithBool); 
+(* Bad Loop *)
+(* Creating bad expression *)
+val badExpression = IntegerExpression_Expression(badIntegerExpression);
+(* Creating bad Instruction *)
+val badInstruction = Variable_Expression_Instruction(sum, badExpression);
+(* Should return false *)
+val secondBadCaseFor10 = ValidInstruction(BooleanExpression_Instruction(whileBooleanExpression, badInstruction))(symbolTableForProgram);
+
+(* Validity Check for Program *)
+
+(* ----------------11--------------------- *)
+exception InvalidDeclarationList;
+
+(* ----------------12--------------------- *)
+exception InvalidProgramBody;
+
+(* ----------------13--------------------- *)
+(* ValidProgram: Program -> bool *)
+val ValidProgram = (fn (GLL_Program(declarationList: DeclarationList, prog_body: Instruction)) => 
+                        if ValidDecList(declarationList)
+                            then if ValidInstruction(prog_body)(FullSymbolTableCreation(declarationList))
+                                    then true
+                                        else raise InvalidProgramBody
+                                else raise InvalidDeclarationList);
+
+(* Testing: 1 good case, 2 bad cases *)
+(* Good case should return true*)
+(* Using our GLL_Program for good case *)
+(* Should return true *)
+val goodCaseFor13 = ValidProgram(finalProgram);
+(* Bad case: should return false *)
+(* To get InvalidDeclarationList *)
+val programWithBadDeclarationList = GLL_Program(badDeclarationList, instructionsForProgram);
+(* Should raise exception InvalidDeclarationList  *)
+(* val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList); *)
+(* To get InvalidProgramBody *)
+val programWithBadBody = GLL_Program(declarationListForProgram, badInstruction);
+(* Should raise exception InvalidProgramBody *)
+val secondBadCaseFor13 = ValidProgram(programWithBadBody);
