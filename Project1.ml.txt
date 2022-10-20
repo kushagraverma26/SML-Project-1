@@ -288,8 +288,12 @@ val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram
 
 (* NoThisVar: DeclarationList -> Variable -> bool *)
 (* Function returns true if the input variable is not found in the input declaration list. *)
-fun NoThisVar ([])(v: Variable) = true |
-    NoThisVar ((x: Variable, y: Type) :: declarationListTail: DeclarationList)(v: Variable) = (x <> v) andalso NoThisVar(declarationListTail)(v);
+(* fun NoThisVar ([])(v: Variable) = true |
+    NoThisVar ((x: Variable, y: Type) :: declarationListTail)(v: Variable) = (x <> v) andalso NoThisVar(declarationListTail)(v); *)
+
+fun NoThisVar([])(v: Variable) = true |
+    NoThisVar((x: Variable, y: Type) :: declarationList_tail)(v: Variable)
+    = (x <> v) andalso NoThisVar(declarationList_tail)(v);
 
 (* Manual testing. Can remove *)
 (* NoThisVar(declarationListForProgram)(sum);
@@ -302,10 +306,11 @@ NoThisVar(declarationListForProgram)(GLL_Variable("testVariable")); *)
 val rec ValidDecList = (fn ([]) => true |
                         ((x, y) :: declarationListTail :DeclarationList) => NoThisVar(declarationListTail)(x) andalso ValidDecList(declarationListTail));
 
-(* Good Case, return true *)
-ValidDecList(declarationListForProgram);
-(* Bad Case, return false *)
-ValidDecList([declarationI, declarationN, declarationSum, declarationI]);
+(* Good Case, should return true *)
+val goodCaseFor2 = ValidDecList(declarationListForProgram);
+(* Bad Case, should return false *)
+val badDeclarationList = [declarationI, declarationN, declarationSum, declarationI]
+val badCaseFor2 = ValidDecList(badDeclarationList);
 
 (* DeclarationList -> SymbolTable *)
 (* ----------------3--------------------- *)
@@ -338,11 +343,13 @@ val rec SearchVariableInternalType = (fn (x: Variable) => (fn ([]) => NoDecRep |
 
 (* Testing. 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
 (* Good cases *)
-SearchVariableInternalType(i)(symbolTableForProgram);
-SearchVariableInternalType(sum)(symbolTableForProgram);
-SearchVariableInternalType(n)(symbolTableForProgram);
+val firstGoodCaseFor7 = SearchVariableInternalType(i)(symbolTableForProgram);
+val secondGoodCaseFor7 = SearchVariableInternalType(sum)(symbolTableForProgram);
+val thirdGoodCaseFor7 = SearchVariableInternalType(n)(symbolTableForProgram);
 (* Bad case *)
-SearchVariableInternalType(GLL_Variable("testVariable"))(symbolTableForProgram);
+(* Bad variable for testing *)
+val badVariable = GLL_Variable("testVariable");
+SearchVariableInternalType(badVariable)(symbolTableForProgram);
 
 (* Validity of Expressions, Instructions *)
 
@@ -399,3 +406,11 @@ val ValidProgram = (fn (GLL_Program(declarationList: DeclarationList, programBod
                                     then true
                                         else raise InvalidProgramBody
                                 else raise InvalidDeclarationList);
+
+(* Good case *)
+val goodCaseFor13 = ValidProgram(finalProgram);
+(* Make bad cases *)
+(* To get InvalidDeclarationList *)
+val firstBadProgram = GLL_Program(badDeclarationList, instructionsForProgram);
+val firstBadCaseFor13 = ValidProgram(firstBadProgram);
+
