@@ -1,3 +1,4 @@
+(* --------------------------------------Step 1: Abstract Syntax-------------------------------------- *)
 (*
 <Program> ::= <DeclarationList> <Instruction> 
  
@@ -284,22 +285,27 @@ val finalProgram = GLL_Program(declarationListForProgram, instructionsForProgram
 (* Validity Check for DeclarationList *)
 
 (* ----------------1--------------------- *)
+
 (* NoThisVar: DeclarationList -> Variable -> bool *)
 fun NoThisVar([])(v: Variable) = true |
     NoThisVar((x: Variable, y: Type) :: declarationList_tail)(v: Variable)
         = (x <> v) andalso NoThisVar(declarationList_tail)(v);
 
 (* ----------------2--------------------- *)
+
 (* ValidDecList: DeclarationList -> Boolean *)
 val rec ValidDecList = (fn ([]) => true |
                         ((x, y) :: declarationList_tail : DeclarationList) 
                             => NoThisVar(declarationList_tail)(x) andalso ValidDecList(declarationList_tail));
 
 (* -------------Testing for 2----------- *)
-(* Good Case: should return true *)
+
+(* Good Case: using declaration list of our sample program: should return true *)
+(* Should return true *)
 val goodCaseFor2 = ValidDecList(declarationListForProgram);
-(* Bad Case: should return false *)
-(* Making bad declarationList, has repeated declaration *)
+
+(* Bad Case: using a bad declaration list: should return false *)
+(* Making bad declarationList, that has repeated declaration *)
 val badDeclarationList = [declarationI, declarationN, declarationSum, declarationI];
 (* Should Return false *)
 val badCaseFor2 = ValidDecList(badDeclarationList);
@@ -307,12 +313,15 @@ val badCaseFor2 = ValidDecList(badDeclarationList);
 (* 3-7: DeclarationList -> SymbolTable *)
 
 (* ----------------3--------------------- *)
+
 datatype InternalType = IntRep | BoolRep | NoDecRep;
 
 (* ----------------4--------------------- *)
+
 type SymbolTable = (Variable * InternalType) list;
 
 (* ----------------5--------------------- *)
+
 (* SymbolTablePlusOne: Declaration -> SymbolTable -> SymbolTable *)
 val SymbolTablePlusOne = (fn(v: Variable, IntegerType) =>
                                 (fn(oldSymbolTable: SymbolTable) => [(v, IntRep)] @ oldSymbolTable) |
@@ -320,33 +329,41 @@ val SymbolTablePlusOne = (fn(v: Variable, IntegerType) =>
                                 (fn(oldSymbolTable: SymbolTable) => [(v, BoolRep)] @ oldSymbolTable));
 
 (* ----------------6--------------------- *)
+
 (* FullSymbolTableCreation: DeclarationList -> SymbolTable *)
 val rec FullSymbolTableCreation = (fn([]) => [] |
                                     (declarationList_head :: declarationList_tail) =>
                                         SymbolTablePlusOne(declarationList_head)(FullSymbolTableCreation(declarationList_tail)));
 
-(* Testing: Good Case: Should give symbol table for declaration list *)
+(* -------------Testing for 6----------- *)
+
+(* Good Case: Should give symbol table for our sample program's declaration list *)
 val symbolTableForProgram = FullSymbolTableCreation(declarationListForProgram);
 
 (* ----------------7--------------------- *)
+
 (* SearchVarInternalType: Variable -> SymbolTable -> InternalType *)
 val rec SearchVarInternalType = (fn(x: Variable) => (fn([]) => NoDecRep |
                                                     ((u: Variable, v: InternalType) :: SymbolTable_tail: SymbolTable) =>
                                                         (if x = u then v
                                                             else SearchVarInternalType(x)(SymbolTable_tail))));
+(* -------------Testing for 7----------- *)
 
-(* Testing: 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
+(* 3 good cases should return IntRep or BoolRep. Bad case should return NoDecRep *)
 (* Good cases *)
-(* Should give IntRep *)
+(* Using the variable i from our sample program: Should give IntRep *)
 val firstGoodCaseFor7 = SearchVarInternalType(i)(symbolTableForProgram);
-(* Should give IntRep *)
+
+(* Using the variable sum from our sample program: Should give IntRep *)
 val secondGoodCaseFor7 = SearchVarInternalType(sum)(symbolTableForProgram);
-(* Should give IntRep *)
+
+(* Using the variable n from our sample program: Should give IntRep *)
 val thirdGoodCaseFor7 = SearchVarInternalType(n)(symbolTableForProgram);
+
 (* Bad case: Should return NoDecRep *)
 (* Bad variable(Variable not used in our program) for testing *)
 val badVariable = GLL_Variable("newVariable");
-(* Should give NoDecRep *)
+(* Testing with badVariable: Should give NoDecRep *)
 SearchVarInternalType(badVariable)(symbolTableForProgram);
 
 
@@ -359,21 +376,26 @@ fun ValidIntExp(Constant_IntegerExpression(v) : IntegerExpression)(st : SymbolTa
     ValidIntExp(Arithmetic_Operation_IntegerExpression(intExpr1, arithmeticOperator, intExpr2): IntegerExpression)(st : SymbolTable) =
         ValidIntExp(intExpr1)(st) andalso ValidIntExp(intExpr2)(st);
 
-(* FIXME: *)
-(* Testing: 3 good cases 2 bad cases *)
+(* -------------Testing for 8----------- *)
+
+(* 3 good cases 2 bad cases *)
 (* GoodCases: Should return true *)
-(* Should return true *)
+(* Good case using a Constant_IntegerExpression: Should return true *)
 val firstGoodCaseFor8 = ValidIntExp(integerExpressionOne)(symbolTableForProgram);
-(* Should return true *)
+
+(* Good case using a Variable_IntegerExpression: Should return true *)
 val secondGoodCaseFor8 = ValidIntExp(integerExpressionI)(symbolTableForProgram);
-(* Should return true *)
+
+(* Good case using a Arithmetic_Operation_IntegerExpression: Should return true *)
 val thirdGoodCaseFor8 = ValidIntExp(integerExpressionIPlusOne)(symbolTableForProgram);
+
 (* Bad cases: Should return false*)
-(* Should Return false *)
+(* Bad case using a Variable_IntegerExpression having a bad variable: Should Return false *)
 val firstBadCaseFor8 = ValidIntExp(Variable_IntegerExpression(badVariable))(symbolTableForProgram);
+
 (* Second bad case: Making bad IntegerExpression for testing *)
 val badIntegerExpression = Variable_IntegerExpression(badVariable);
-(* Should Return false *)
+(* Bad case using a Arithmetic_Operation_IntegerExpression having a bad integer expression: Should Return false *)
 val secondBadCaseFor8 = ValidIntExp(Arithmetic_Operation_IntegerExpression(integerExpressionI, Plus, badIntegerExpression))(symbolTableForProgram);
 
 (* ----------------9--------------------- *)
@@ -391,31 +413,40 @@ val rec ValidBoolExp = (fn (Constant_BooleanExpression(v): BooleanExpression) =>
                                 (fn (st: SymbolTable) =>
                                     ValidBoolExp(booleanExpression1)(st) andalso ValidBoolExp(booleanExpression2)(st)));
 
-(* Testing: 4 good cases 1 bad cases *)
+(* -------------Testing for 9----------- *)
+
+(* 4 good cases 1 bad cases *)
 (* Good Cases: Should return true *)
 (* Making a Constant_BooleanExpression for testing *)
 val constantBooleanExpressionForTesting = Constant_BooleanExpression(false);
-(* Should return true *)
+(* Good case using a Constant_BooleanExpression: Should return true *)
 val firstGoodCaseFor9 =  ValidBoolExp(constantBooleanExpressionForTesting)(symbolTableForProgram);
-(* Making a symbolTable with a bool type variable *)
+
+(* Making a bool type variable for testing *)
 val booleanVariable = GLL_Variable("booleanVariable");
+(* Making a symbolTable with a bool type variable for testing *)
 val symbolTableWithBool = FullSymbolTableCreation([declarationN, declarationSum, declarationI, (booleanVariable, BooleanType)]);
 (* Making a Variable_BooleanExpression for testing *)
 val variableBooleanExpressionForTesting = Variable_BooleanExpression(booleanVariable);
-(* Should return true *)
+(* Good case using Variable_BooleanExpression: Should return true *)
 val secondGoodCaseFor9 = ValidBoolExp(variableBooleanExpressionForTesting)(symbolTableWithBool);
-(* Should return true *)
+
+(* Good case using Relational_Operation_BooleanExpression from our sample program: Should return true *)
 val thirdGoodCaseFor9 = ValidBoolExp(outerIfBooleanExpression)(symbolTableForProgram);
+
 (* Making Boolean_Operation_BooleanExpression for testing *)
 val booleanOperatorBooleanExpressionForTesting = Boolean_Operation_BooleanExpression(outerIfBooleanExpression, And , whileBooleanExpression);
-(* Should return true *)
+(* Good case using Boolean_Operation_BooleanExpression: Should return true *)
 val fourthGoodCaseFor9 = ValidBoolExp(booleanOperatorBooleanExpressionForTesting)(symbolTableForProgram);
+
 (* 1 bad case *)
-(* Should Return false *)
+(* Bad case using Relational_Operation_BooleanExpression having a bad integer expression: Should Return false *)
 val badCaseFor9 = ValidBoolExp(Relational_Operation_BooleanExpression(badIntegerExpression, Eq, integerExpressionN))(symbolTableForProgram);
 
 (* Validity Check for Instructions *)
+
 (* ----------------10--------------------- *)
+
 (* ValidInstruction: Instruction -> SymbolTable -> bool *)
 fun ValidInstruction(Skip: Instruction) =
                         (fn (st: SymbolTable) => true) |
@@ -437,34 +468,37 @@ fun ValidInstruction(Skip: Instruction) =
                         (fn (st: SymbolTable) =>
                             ValidBoolExp(booleanExpression)(st) andalso ValidInstruction(instruction)(st));
 
-(* Testing: 5 good cases, 2 bad cases *)
+(* -------------Testing for 10----------- *)
+
+(* 5 good cases, 2 bad cases *)
 (* Good cases: should return true *)
-(* Good case for integer assignment *)
+(* Good case for integer assignment from our sample program *)
 val firstGoodCaseFor10 = ValidInstruction(instructionIEqualsOne)(symbolTableForProgram);
+
 (* Boolean Assignment Instruction for testing *)
 val booleanAssignmentInstruction = Variable_Expression_Instruction(booleanVariable, BooleanExpression_Expression(whileBooleanExpression));
-(* Good case for boolean assignment *)
-(* Should return true *)
+(* Good case using boolean assignment: Should return true *)
 val secondGoodCaseFor10 = ValidInstruction(booleanAssignmentInstruction)(symbolTableWithBool);
-(* Good case for instruction list from our program *)
-(* Should return true *)
+
+(* Good case using instruction list from our program: Should return true *)
 val thirdGoodCaseFor10 = ValidInstruction(instructionsForProgram)(symbolTableForProgram);
-(* Good case for if-then-else: using if-then-else from our program *)
-(* Should return true *)
+
+(* Good case using if-then-else: using if-then-else from our program: Should return true *)
 val fourthGoodCaseFor10 = ValidInstruction(outerIfThenElse)(symbolTableForProgram);
-(* Good case for while loop from our program *)
-(* Should return true *)
+
+(* Good case using while loop from our program: Should return true *)
 val fifthGoodCaseFor10 = ValidInstruction(whileInstruction)(symbolTableForProgram);
+
 (* Bad cases: should return false *)
-(* Bad assignment *)
-(* Should return false *)
-val firstBadCaseFor10 = ValidInstruction(Variable_Expression_Instruction(booleanVariable, expressionOne))(symbolTableWithBool); 
-(* Bad Loop *)
+(* Bad assignment assigning integer type expression to boolean type variable: Should return false *)
+val firstBadCaseFor10 = ValidInstruction(Variable_Expression_Instruction(booleanVariable, expressionOne))(symbolTableWithBool);
+
+(* Testing Bad Loop *)
 (* Creating bad expression *)
 val badExpression = IntegerExpression_Expression(badIntegerExpression);
 (* Creating bad Instruction *)
 val badInstruction = Variable_Expression_Instruction(sum, badExpression);
-(* Should return false *)
+(* Testing a bad loop having bad instruction: Should return false *)
 val secondBadCaseFor10 = ValidInstruction(BooleanExpression_Instruction(whileBooleanExpression, badInstruction))(symbolTableForProgram);
 
 (* Validity Check for Program *)
@@ -477,24 +511,27 @@ exception InvalidProgramBody;
 
 (* ----------------13--------------------- *)
 (* ValidProgram: Program -> bool *)
-val ValidProgram = (fn (GLL_Program(declarationList: DeclarationList, prog_body: Instruction)) => 
+val ValidProgram = (fn (GLL_Program(declarationList: DeclarationList, prog_body: Instruction)) =>
                         if ValidDecList(declarationList)
                             then if ValidInstruction(prog_body)(FullSymbolTableCreation(declarationList))
                                     then true
                                         else raise InvalidProgramBody
                                 else raise InvalidDeclarationList);
 
-(* Testing: 1 good case, 2 bad cases *)
+(* -------------Testing for 13----------- *)
+
+(* 1 good case, 2 bad cases *)
 (* Good case should return true*)
-(* Using our GLL_Program for good case *)
-(* Should return true *)
+(* Using our GLL_Program for good case: Should return true *)
 val goodCaseFor13 = ValidProgram(finalProgram);
-(* Bad case: should return false *)
-(* To get InvalidDeclarationList *)
+
+(* Bad cases *)
+(* Making a program with bad declaration list *)
 val programWithBadDeclarationList = GLL_Program(badDeclarationList, instructionsForProgram);
-(* Should raise exception InvalidDeclarationList  *)
-(* val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList); *)
-(* To get InvalidProgramBody *)
+(* Bad case using bad declaration list: Should raise exception InvalidDeclarationList  *)
+val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList);
+
+(* Making a bad program body using a bad instruction *)
 val programWithBadBody = GLL_Program(declarationListForProgram, badInstruction);
-(* Should raise exception InvalidProgramBody *)
+(* Bad case using bad program body: Should raise exception InvalidProgramBody *)
 val secondBadCaseFor13 = ValidProgram(programWithBadBody);

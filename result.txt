@@ -516,7 +516,7 @@ val finalProgram =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
-stdIn:290.14-290.16 Warning: calling polyEqual
+stdIn:292.14-292.16 Warning: calling polyEqual
 val NoThisVar = fn : (Variable * Type) list -> Variable -> bool
 val ValidDecList = fn : Declaration list -> bool
 val goodCaseFor2 = true : bool
@@ -534,7 +534,7 @@ val FullSymbolTableCreation = fn
 val symbolTableForProgram =
   [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
    (GLL_Variable "i",IntRep)] : (Variable * InternalType) list
-stdIn:335.63 Warning: calling polyEqual
+stdIn:348.63 Warning: calling polyEqual
 val SearchVarInternalType = fn
   : Variable -> (Variable * InternalType) list -> InternalType
 val firstGoodCaseFor7 = IntRep : InternalType
@@ -658,16 +658,7 @@ val programWithBadDeclarationList =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
-val programWithBadBody =
-  GLL_Program
-    ([(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
-      (GLL_Variable "i",IntegerType)],
-     Variable_Expression_Instruction
-       (GLL_Variable "sum",
-        IntegerExpression_Expression
-          (Variable_IntegerExpression (GLL_Variable "newVariable"))))
-  : Program
 
-uncaught exception InvalidProgramBody
-  raised at: stdIn:484.52-484.70
+uncaught exception InvalidDeclarationList
+  raised at: stdIn:519.44-519.66
 - 
