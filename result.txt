@@ -454,6 +454,9 @@ val instructionsForProgram =
                       (Arithmetic_Operation_IntegerExpression
                          (Variable_IntegerExpression (GLL_Variable "i"),Plus,
                           Constant_IntegerExpression 1)))])])] : Instruction
+val declarationN = (GLL_Variable "n",IntegerType) : Variable * Type
+val declarationSum = (GLL_Variable "sum",IntegerType) : Variable * Type
+val declarationI = (GLL_Variable "i",IntegerType) : Variable * Type
 val declarationListForProgram =
   [(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
    (GLL_Variable "i",IntegerType)] : (Variable * Type) list
@@ -513,4 +516,62 @@ val finalProgram =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
+stdIn:290.14-290.16 Warning: calling polyEqual
+val NoThisVar = fn : (Variable * Type) list -> Variable -> bool
+val ValidDecList = fn : Declaration list -> bool
+val goodCaseFor2 = true : bool
+val badDeclarationList =
+  [(GLL_Variable "i",IntegerType),(GLL_Variable "n",IntegerType),
+   (GLL_Variable "sum",IntegerType),(GLL_Variable "i",IntegerType)]
+  : (Variable * Type) list
+val badCaseFor2 = false : bool
+datatype InternalType = BoolRep | IntRep | NoDecRep
+type SymbolTable = (Variable * InternalType) list
+val SymbolTablePlusOne = fn
+  : Variable * Type -> SymbolTable -> (Variable * InternalType) list
+val FullSymbolTableCreation = fn
+  : (Variable * Type) list -> (Variable * InternalType) list
+val symbolTableForProgram =
+  [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
+   (GLL_Variable "i",IntRep)] : (Variable * InternalType) list
+stdIn:335.63 Warning: calling polyEqual
+val SearchVarInternalType = fn
+  : Variable -> (Variable * InternalType) list -> InternalType
+val firstGoodCaseFor7 = IntRep : InternalType
+val secondGoodCaseFor7 = IntRep : InternalType
+val thirdGoodCaseFor7 = IntRep : InternalType
+val badVariable = GLL_Variable "newVariable" : Variable
+val it = NoDecRep : InternalType
+val ValidIntExp = fn : IntegerExpression -> SymbolTable -> bool
+val firstGoodCaseFor8 = true : bool
+val secondGoodCaseFor8 = true : bool
+val thirdGoodCaseFor8 = true : bool
+val firstBadCaseFor8 = false : bool
+val badIntegerExpression =
+  Variable_IntegerExpression (GLL_Variable "newVariable") : IntegerExpression
+val secondBadCaseFor8 = false : bool
+val ValidBoolExp = fn : BooleanExpression -> SymbolTable -> bool
+val constantBooleanExpressionForTesting = Constant_BooleanExpression false
+  : BooleanExpression
+val firstGoodCaseFor9 = true : bool
+val booleanVariable = GLL_Variable "booleanVariable" : Variable
+val symbolTableWithBool =
+  [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
+   (GLL_Variable "i",IntRep),(GLL_Variable "booleanVariable",BoolRep)]
+  : (Variable * InternalType) list
+val variableBooleanExpressionForTesting =
+  Variable_BooleanExpression (GLL_Variable "booleanVariable")
+  : BooleanExpression
+val secondGoodCaseFor9 = true : bool
+val thirdGoodCaseFor9 = true : bool
+val booleanOperatorBooleanExpressionForTesting =
+  Boolean_Operation_BooleanExpression
+    (Relational_Operation_BooleanExpression
+       (Variable_IntegerExpression (GLL_Variable "n"),Le,
+        Constant_IntegerExpression 0),And,
+     Relational_Operation_BooleanExpression
+       (Variable_IntegerExpression (GLL_Variable "i"),Lt,
+        Variable_IntegerExpression (GLL_Variable "n"))) : BooleanExpression
+val fourthGoodCaseFor9 = true : bool
+val badCaseFor9 = false : bool
 
