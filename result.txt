@@ -516,7 +516,7 @@ val finalProgram =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
-stdIn:296.10-296.12 Warning: calling polyEqual
+stdIn:292.14-292.16 Warning: calling polyEqual
 val NoThisVar = fn : (Variable * Type) list -> Variable -> bool
 val ValidDecList = fn : Declaration list -> bool
 val goodCaseFor2 = true : bool
@@ -534,27 +534,75 @@ val FullSymbolTableCreation = fn
 val symbolTableForProgram =
   [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
    (GLL_Variable "i",IntRep)] : (Variable * InternalType) list
-stdIn:342.75 Warning: calling polyEqual
-val SearchVariableInternalType = fn
+stdIn:348.63 Warning: calling polyEqual
+val SearchVarInternalType = fn
   : Variable -> (Variable * InternalType) list -> InternalType
 val firstGoodCaseFor7 = IntRep : InternalType
 val secondGoodCaseFor7 = IntRep : InternalType
 val thirdGoodCaseFor7 = IntRep : InternalType
-val badVariable = GLL_Variable "testVariable" : Variable
+val badVariable = GLL_Variable "newVariable" : Variable
 val it = NoDecRep : InternalType
 val ValidIntExp = fn : IntegerExpression -> SymbolTable -> bool
-val it = true : bool
-val it = true : bool
-val it = true : bool
-val it = false : bool
-val ValidBooleanExp = fn : BooleanExpression -> SymbolTable -> bool
+val firstGoodCaseFor8 = true : bool
+val secondGoodCaseFor8 = true : bool
+val thirdGoodCaseFor8 = true : bool
+val firstBadCaseFor8 = false : bool
+val badIntegerExpression =
+  Variable_IntegerExpression (GLL_Variable "newVariable") : IntegerExpression
+val secondBadCaseFor8 = false : bool
+val ValidBoolExp = fn : BooleanExpression -> SymbolTable -> bool
+val constantBooleanExpressionForTesting = Constant_BooleanExpression false
+  : BooleanExpression
+val firstGoodCaseFor9 = true : bool
+val booleanVariable = GLL_Variable "booleanVariable" : Variable
+val symbolTableWithBool =
+  [(GLL_Variable "n",IntRep),(GLL_Variable "sum",IntRep),
+   (GLL_Variable "i",IntRep),(GLL_Variable "booleanVariable",BoolRep)]
+  : (Variable * InternalType) list
+val variableBooleanExpressionForTesting =
+  Variable_BooleanExpression (GLL_Variable "booleanVariable")
+  : BooleanExpression
+val secondGoodCaseFor9 = true : bool
+val thirdGoodCaseFor9 = true : bool
+val booleanOperatorBooleanExpressionForTesting =
+  Boolean_Operation_BooleanExpression
+    (Relational_Operation_BooleanExpression
+       (Variable_IntegerExpression (GLL_Variable "n"),Le,
+        Constant_IntegerExpression 0),And,
+     Relational_Operation_BooleanExpression
+       (Variable_IntegerExpression (GLL_Variable "i"),Lt,
+        Variable_IntegerExpression (GLL_Variable "n"))) : BooleanExpression
+val fourthGoodCaseFor9 = true : bool
+val badCaseFor9 = false : bool
 val ValidInstruction = fn : Instruction -> SymbolTable -> bool
+val firstGoodCaseFor10 = true : bool
+val booleanAssignmentInstruction =
+  Variable_Expression_Instruction
+    (GLL_Variable "booleanVariable",
+     BooleanExpression_Expression
+       (Relational_Operation_BooleanExpression
+          (Variable_IntegerExpression (GLL_Variable "i"),Lt,
+           Variable_IntegerExpression (GLL_Variable "n")))) : Instruction
+val secondGoodCaseFor10 = true : bool
+val thirdGoodCaseFor10 = true : bool
+val fourthGoodCaseFor10 = true : bool
+val fifthGoodCaseFor10 = true : bool
+val firstBadCaseFor10 = false : bool
+val badExpression =
+  IntegerExpression_Expression
+    (Variable_IntegerExpression (GLL_Variable "newVariable")) : Expression
+val badInstruction =
+  Variable_Expression_Instruction
+    (GLL_Variable "sum",
+     IntegerExpression_Expression
+       (Variable_IntegerExpression (GLL_Variable "newVariable")))
+  : Instruction
+val secondBadCaseFor10 = false : bool
 exception InvalidDeclarationList
 exception InvalidProgramBody
 val ValidProgram = fn : Program -> bool
 val goodCaseFor13 = true : bool
-val firstBadProgram =
-
+val programWithBadDeclarationList =
   GLL_Program
     ([(GLL_Variable "i",IntegerType),(GLL_Variable "n",IntegerType),
       (GLL_Variable "sum",IntegerType),(GLL_Variable "i",IntegerType)],
@@ -612,6 +660,5 @@ val firstBadProgram =
   : Program
 
 uncaught exception InvalidDeclarationList
-  raised at: stdIn:408.44-408.66
+  raised at: stdIn:519.44-519.66
 - 
-
