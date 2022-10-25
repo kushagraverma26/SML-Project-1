@@ -458,9 +458,9 @@ fun ValidInstruction(Skip: Instruction) =
                             ValidBoolExp(booleanExpression)(st) andalso (SearchVarInternalType(variable)(st) = BoolRep)) |
     ValidInstruction(Instruction_List([]): Instruction) =
                         (fn (st: SymbolTable) => true) |
-    ValidInstruction(Instruction_List(instructionList_head :: declarationList_tail): Instruction) =
+    ValidInstruction(Instruction_List(instructionList_head :: instructionList_tail): Instruction) =
                         (fn (st: SymbolTable) =>
-                            ValidInstruction(instructionList_head)(st) andalso ValidInstruction(Instruction_List(declarationList_tail))(st)) |
+                            ValidInstruction(instructionList_head)(st) andalso ValidInstruction(Instruction_List(instructionList_tail))(st)) |
     ValidInstruction(BooleanExpression_Instruction_Instruction(booleanExpression, instruction1, instruction2): Instruction) =
                         (fn (st: SymbolTable) =>
                             ValidBoolExp(booleanExpression)(st) andalso ValidInstruction(instruction1)(st) andalso ValidInstruction(instruction2)(st)) |
@@ -613,11 +613,54 @@ fun BoolExpCalculation (BoolValue(b1), And, BoolValue(b2)) = BoolValue(b1 andals
     BoolExpCalculation (BoolValue(b1), Or, BoolValue(b2)) = BoolValue(b1 orelse b2) |
     BoolExpCalculation (_, _, _) = raise IncompatibleBoolExp;
 
+(* ----------------Testing for 11--------------------- *)
 
-(* 
-(* Arithmetic operations *)
-datatype Arithmetic_Op = Plus | Minus | Times | Div;
-(* Relational Operations *)
-datatype Relational_Op = Lt | Le | Eq | Ne | Ge | Gt;
-(* Boolean Operations *)
-datatype Boolean_Op = And | Or; *)
+(* ----------------12--------------------- *)
+
+(* MeaningIntExp: IntegerExpression -> ProgState -> MemoryValue *)
+val rec MeaningIntExp = (fn (Constant_IntegerExpression(c)) => (fn (ps: ProgState) => IntValue(c)) |
+                            (Variable_IntegerExpression(v)) => (fn (ps: ProgState) => ps(v)) |
+                            (Arithmetic_Operation_IntegerExpression(iexp1, aop, iexp2)) => (fn (ps: ProgState) => ArithExpCalculation(MeaningIntExp(iexp1)(ps), aop, MeaningIntExp(iexp2)(ps))));
+
+(* ----------------Testing for 12--------------------- *)
+
+(* ----------------13--------------------- *)
+
+(* MeaningBoolExp: BoolExp -> ProgState -> MemoryValue *)
+val rec MeaningBoolExp = (fn (Constant_BooleanExpression(c)) => (fn (ps: ProgState) => BoolValue(c)) |
+                            (Variable_BooleanExpression(v)) => (fn (ps: ProgState) => ps(v)) |
+                            (Relational_Operation_BooleanExpression(iexp1, rop, iexp2)) => (fn (ps: ProgState) => RelaExpCalculation(MeaningIntExp(iexp1)(ps), rop, MeaningIntExp(iexp2)(ps))) |
+                            (Boolean_Operation_BooleanExpression(bexp1, bop, bexp2)) => (fn (ps: ProgState) => BoolExpCalculation(MeaningBoolExp(bexp1)(ps), bop, MeaningBoolExp(bexp2)(ps))));
+
+(* ----------------Testing for 13--------------------- *)
+
+(* ----------------14--------------------- *)
+
+(* MeaningExp: Expression -> ProgState -> MemoryValue *)
+fun MeaningExp (IntegerExpression_Expression(iexp)) = (fn (ps: ProgState) => MeaningIntExp(iexp)(ps)) |
+    MeaningExp (BooleanExpression_Expression(bexp)) = (fn (ps: ProgState) => MeaningBoolExp(bexp)(ps));
+
+(* ----------------Testing for 14--------------------- *)
+
+(* Meaning of Instruction and Program *)
+
+(* ----------------15--------------------- *)
+
+(* MeaningInst: Instruction -> ProgState -> ProgState *)
+fun MeaningInst (Skip)(ps: ProgState) = ps |
+    MeaningInst (Variable_Expression_Instruction(v,exp))(ps: ProgState) = PSUpdateOneMapping(v)(MeaningExp(exp)(ps))(ps) |
+    MeaningInst (Instruction_List([]))(ps: ProgState) = ps |
+    MeaningInst (Instruction_List(instructionList_head :: instructionList_tail))(ps: ProgState) = MeaningInst(Instruction_List(instructionList_tail))(MeaningInst(instructionList_head)(ps)) |
+    MeaningInst (BooleanExpression_Instruction_Instruction(bexp, inst_branch1, inst_branch2))(ps: ProgState) = if MeaningBoolExp(bexp)(ps) = BoolValue(true) then MeaningInst(inst_branch1)(ps) else MeaningInst(inst_branch2)(ps) |
+    MeaningInst (BooleanExpression_Instruction(bexp, instBody))(ps: ProgState) = if MeaningBoolExp(bexp)(ps) = BoolValue(true) then MeaningInst(BooleanExpression_Instruction(bexp, instBody))(MeaningInst(instBody)(ps)) else ps;
+
+(* ----------------Testing for 15--------------------- *)
+
+(* ----------------16--------------------- *)
+
+exception ProgramError;
+
+(* ----------------17--------------------- *)
+
+(* MeaningProgram: Program -> ProgState *)
+val MeaningProgram = (fn (GLL_Program(declarationList, prog_body)) => if ValidProgram(GLL_Program(declarationList, prog_body)) then MeaningInst(prog_body)(PSInitial) else raise ProgramError);

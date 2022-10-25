@@ -684,10 +684,12 @@ exception IncompatibeRelationalExp
 val RelaExpCalculation = fn
   : MemoryValue * Relational_Op * MemoryValue -> MemoryValue
 exception IncompatibleBoolExp
-stdIn:612.5-613.84 Warning: match nonexhaustive
-          (BoolValue b1,And,BoolValue b2) => ...
-          (BoolValue b1,Or,BoolValue b2) => ...
-  
 val BoolExpCalculation = fn
   : MemoryValue * Boolean_Op * MemoryValue -> MemoryValue
+val MeaningIntExp = fn : IntegerExpression -> ProgState -> MemoryValue
+val MeaningBoolExp = fn : BooleanExpression -> ProgState -> MemoryValue
+val MeaningExp = fn : Expression -> ProgState -> MemoryValue
+val MeaningInst = fn : Instruction -> ProgState -> ProgState
+exception ProgramError
+val MeaningProgram = fn : Program -> ProgState
 
