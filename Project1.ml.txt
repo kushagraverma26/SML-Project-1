@@ -529,9 +529,95 @@ val goodCaseFor13 = ValidProgram(finalProgram);
 (* Making a program with bad declaration list *)
 val programWithBadDeclarationList = GLL_Program(badDeclarationList, instructionsForProgram);
 (* Bad case using bad declaration list: Should raise exception InvalidDeclarationList  *)
-val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList);
+(* val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList); *)
 
 (* Making a bad program body using a bad instruction *)
 val programWithBadBody = GLL_Program(declarationListForProgram, badInstruction);
 (* Bad case using bad program body: Should raise exception InvalidProgramBody *)
-val secondBadCaseFor13 = ValidProgram(programWithBadBody);
+(* val secondBadCaseFor13 = ValidProgram(programWithBadBody); *)
+
+(* --------------------------------------Step 3: Dynamic Semantics-------------------------------------- *)
+
+(* Memory Abstraction and Memory Value Update *)
+
+(* ----------------1--------------------- *)
+
+datatype MemoryValue = IntValue of int | BoolValue of bool | UnknownValue;
+
+(* ----------------2--------------------- *)
+
+type ProgState = Variable -> MemoryValue;
+
+(* ----------------3--------------------- *)
+
+(* PSInitial: ProgState *)
+val PSInitial = (fn (v: Variable) => UnknownValue);
+
+(* ----------------Testing for 3--------------------- *)
+
+val firstTestCaseFor3 = PSInitial(sum);
+val secondTestCaseFor3 = PSInitial(i);
+val thirdTestCaseFor3 = PSInitial(n);
+
+(* ----------------4--------------------- *)
+
+(* PSUpdateOneMapping: Variable -> MemoryValue -> ProgState -> Variable -> MemoryValue *)
+fun PSUpdateOneMapping (x: Variable)(mv: MemoryValue)(oldPS: ProgState)(y: Variable) = if y = x then mv else oldPS(y);
+
+(* ----------------Testing for 4--------------------- *)
+
+(* Meaning of Expression *)
+
+(* ----------------5--------------------- *)
+
+exception DivisionError;
+
+(* ----------------6--------------------- *)
+
+exception IncompatibleArithmeticExp;
+
+(* ----------------7--------------------- *)
+
+(* ArithExpCalculation: MemoryValue * Arithmetic_Op * MemoryValue -> MemoryValue *)
+fun ArithExpCalculation (IntValue(i1), Plus, IntValue(i2)) = IntValue(i1 + i2) |
+    ArithExpCalculation (IntValue(i1), Minus, IntValue(i2)) = IntValue(i1 - i2) |
+    ArithExpCalculation (IntValue(i1), Times, IntValue(i2)) = IntValue(i1 * i2) |
+    ArithExpCalculation (IntValue(i1), Div, IntValue(i2)) = if i2 = 0 then raise DivisionError else IntValue(i1 div i2) |
+    ArithExpCalculation (_, _, _) = raise IncompatibleArithmeticExp;
+
+(* ----------------Testing for 7--------------------- *)
+
+(* ----------------8--------------------- *)
+
+exception IncompatibeRelationalExp;
+
+(* ----------------9--------------------- *)
+
+(* RelaExpCalculation: MemoryValue * Relational_Op * MemoryValue -> MemoryValue *)
+fun RelaExpCalculation (IntValue(i1), Lt, IntValue(i2)) = if i1 < i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (IntValue(i1), Le, IntValue(i2)) = if i1 <= i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (IntValue(i1), Eq, IntValue(i2)) = if i1 = i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (IntValue(i1), Ne, IntValue(i2)) = if i1 <> i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (IntValue(i1), Ge, IntValue(i2)) = if i1 >= i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (IntValue(i1), Gt, IntValue(i2)) = if i1 > i2 then BoolValue(true) else BoolValue(false) |
+    RelaExpCalculation (_, _, _) = raise IncompatibeRelationalExp;
+
+(* ----------------10--------------------- *)
+
+exception IncompatibleBoolExp;
+
+(* ----------------11--------------------- *)
+
+(* BoolExpCalculation: MemoryValue * Boolean_Op * MemoryValue -> MemoryValue *)
+fun BoolExpCalculation (BoolValue(b1), And, BoolValue(b2)) = BoolValue(b1 andalso b2) |
+    BoolExpCalculation (BoolValue(b1), Or, BoolValue(b2)) = BoolValue(b1 orelse b2) |
+    BoolExpCalculation (_, _, _) = raise IncompatibleBoolExp;
+
+
+(* 
+(* Arithmetic operations *)
+datatype Arithmetic_Op = Plus | Minus | Times | Div;
+(* Relational Operations *)
+datatype Relational_Op = Lt | Le | Eq | Ne | Ge | Gt;
+(* Boolean Operations *)
+datatype Boolean_Op = And | Or; *)

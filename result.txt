@@ -658,7 +658,36 @@ val programWithBadDeclarationList =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
+val programWithBadBody =
+  GLL_Program
+    ([(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
+      (GLL_Variable "i",IntegerType)],
+     Variable_Expression_Instruction
+       (GLL_Variable "sum",
+        IntegerExpression_Expression
+          (Variable_IntegerExpression (GLL_Variable "newVariable"))))
+  : Program
+datatype MemoryValue = BoolValue of bool | IntValue of int | UnknownValue
+type ProgState = Variable -> MemoryValue
+val PSInitial = fn : Variable -> MemoryValue
+val firstTestCaseFor3 = UnknownValue : MemoryValue
+val secondTestCaseFor3 = UnknownValue : MemoryValue
+val thirdTestCaseFor3 = UnknownValue : MemoryValue
+stdIn:565.93 Warning: calling polyEqual
+val PSUpdateOneMapping = fn
+  : Variable -> MemoryValue -> ProgState -> Variable -> MemoryValue
+exception DivisionError
+exception IncompatibleArithmeticExp
+val ArithExpCalculation = fn
+  : MemoryValue * Arithmetic_Op * MemoryValue -> MemoryValue
+exception IncompatibeRelationalExp
+val RelaExpCalculation = fn
+  : MemoryValue * Relational_Op * MemoryValue -> MemoryValue
+exception IncompatibleBoolExp
+stdIn:612.5-613.84 Warning: match nonexhaustive
+          (BoolValue b1,And,BoolValue b2) => ...
+          (BoolValue b1,Or,BoolValue b2) => ...
+  
+val BoolExpCalculation = fn
+  : MemoryValue * Boolean_Op * MemoryValue -> MemoryValue
 
-uncaught exception InvalidDeclarationList
-  raised at: stdIn:519.44-519.66
-- 
