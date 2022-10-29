@@ -358,3 +358,126 @@ val testBooleanExpression = Relational_Operation_BooleanExpression(integerExpres
 
 (* 1 bad case *)
 ValidBoolExp(Relational_Operation_BooleanExpression(Variable_IntegerExpression(GLL_Variable("expr1")), Eq,  Variable_IntegerExpression(GLL_Variable("expr2"))))(symbolTableForProgram);
+
+
+
+(* ----------------- Step 3 ----------------- *)
+
+(* 1-4 Memory abstraction and memory value update *)
+
+(* --------- 1 --------- *)
+datatype MemoryValue = IntegerValue of int | BoolValue of bool | UnknownValue;
+
+(* --------- 2 --------- *)
+type ProgState = Variable -> MemoryValue;
+
+(* --------- 3 --------- *)
+(* PSInitial: ProgState *)
+val PSInitial = (fn(v: Variable) => UnknownValue);
+
+(* --------- 4 --------- *)
+(* PSUpdateOneMapping: Variable -> MemoryValue -> ProgState -> Variable -> MemoryValue *)
+fun PSUpdateOneMapping(x: Variable)(mv: MemoryValue)(oldPS: ProgState)
+    (y: Variable) = (if y = x then mv else oldPS(y));
+
+(* 5-14 Meaning of Expression *)
+(* --------- 5 ---------*)
+exception DivisonError;
+
+(* --------- 6 ---------*)
+exception IncomptiableArthiExp;
+
+(* --------- 7 ---------*)
+(* ArithExpCalculation: MemoryValue * Arithmetic_Op * MemoryValue -> MemoryValue *)
+fun ArithExpCalculation(IntegerValue(i_1), Minus, IntegerValue(i_2)) = IntegerValue(i_1 - i_2)   |
+    ArithExpCalculation(IntegerValue(i_1), Plus, IntegerValue(i_2)) = IntegerValue(i_1 + i_2)    |
+    ArithExpCalculation(IntegerValue(i_1), Times, IntegerValue(i_2)) = IntegerValue(i_1 * i_2)   |
+    ArithExpCalculation(IntegerValue(i_1), Div, IntegerValue(i_2)) = 
+                        if i_2 = 0 then raise DivisonError else IntegerValue(i_1 div i_2)        |
+
+    (*   Raise exception for Incomptiable Arthimetic Expression type *)   
+    ArithExpCalculation(_, _, _) = raise   IncomptiableArthiExp; 
+(* --------- 8 ---------*)
+exception IncomptiableRelaExp;
+
+(* --------- 9 ---------*)
+(* RelaExpCalculation: MemoryValue * Relational_Op * MemoryValue -> MemoryValue *)
+fun RelaExpCalculation(IntegerValue(i_1), Lt, IntegerValue(i_2)) = BoolValue(i_1 < i_2)  |
+    RelaExpCalculation(IntegerValue(i_1), Le, IntegerValue(i_2)) = BoolValue(i_1 <= i_2) |
+    RelaExpCalculation(IntegerValue(i_1), Eq, IntegerValue(i_2)) = BoolValue(i_1 = i_2)  |
+    RelaExpCalculation(IntegerValue(i_1), Ne, IntegerValue(i_2)) = BoolValue(i_1 <> i_2) |
+    RelaExpCalculation(IntegerValue(i_1), Ge, IntegerValue(i_2)) = BoolValue(i_1 >= i_2) |
+    RelaExpCalculation(IntegerValue(i_1), Gt, IntegerValue(i_2)) = BoolValue(i_1 > i_2)  |
+
+    (*   Raise exception for Incomptiable Realtional Expression type *)  
+    RelaExpCalculation(_, _, _) = raise IncomptiableRelaExp;
+
+(* --------- 10 ---------*)
+exception IncomptiableBoolExp;
+
+(* --------- 11 ---------*)
+(* BoolExpCalculation: MemoryValue * Boolean_Op * MemoryValue -> MemoryValue *)
+
+fun BoolExpCalculation(BoolValue(i_1), And, BoolValue(i_2)) = BoolValue(i_1 andalso i_2) |
+    BoolExpCalculation(BoolValue(i_1), Or, BoolValue(i_2)) = BoolValue(i_1 orelse i_2) |
+
+    (*   Raise exception for Incomptiable Boolean Expression type *)  
+
+    BoolExpCalculation(_, _, _) = raise IncomptiableBoolExp;
+
+(* --------- 12 ---------*)
+(* MeaningIntExp: IntegerExpression * ProgState  MemoryValue *)
+
+val rec MeaningIntExp = (fn(Constant_IntegerExpression(i_1)) => (fn(PS : ProgState) => IntegerValue(i_1)) |
+                           (Variable_IntegerExpression(v)) => (fn(PS : ProgState) => PS(v))               |
+                            Arithmetic_Operation_IntegerExpression(iexp1, Arithmatic_Op, iexp2) =>
+                                (fn(PS : ProgState) => ArithExpCalculation(MeaningIntExp(iexp1)(PS), Arithmatic_Op, MeaningIntExp(iexp2)(PS)))
+                        );
+
+(* --------- 13 ---------*)
+(* MeaningBoolExp: BooleanExpression * ProgState  MemoryValue *)  
+(*missing a case Relational_Operation_BooleanExpression*)
+val rec MeaningBoolExp = (fn(Constant_BooleanExpression(i_1)) => (fn(PS : ProgState) => BoolValue(i_1)) |
+                            (Variable_BooleanExpression(v)) => (fn(PS : ProgState) => PS(v))            |
+                            (Relational_Operation_BooleanExpression(iexp1, Relational_Op, iexp2)) =>
+                                (fn(PS : ProgState) => RelaExpCalculation(MeaningIntExp(iexp1)(PS), Relational_Op, MeaningIntExp(iexp2)(PS))) | 
+                            (Boolean_Operation_BooleanExpression(bexp1, Boolean_Op, bexp2)) =>
+                                (fn(PS : ProgState) => BoolExpCalculation(MeaningBoolExp(bexp1)(PS), Boolean_Op, MeaningBoolExp(bexp2)(PS)))
+                         );      
+
+(* --------- 14 ---------*)
+(* MeaningExp: Expression * ProgState  MemoryValue *) 
+fun MeaningExp(IntegerExpression_Expression(iexp)) = (fn(PS : ProgState) => MeaningIntExp(iexp)(PS)) |
+    MeaningExp(BooleanExpression_Expression(bexp)) = (fn(PS : ProgState) => MeaningBoolExp(bexp)(PS));
+
+(* 15-17: Meaning of Instruction and Program  *)
+
+(* --------- 15 ---------*)
+(* MeaningInst: Instruction  * ProgState  MemoryValue *) 
+fun MeaningInst(Skip)(PS : ProgState) = PS |
+    MeaningInst(Variable_Expression_Instruction(v, exp))(PS : ProgState) 
+                = PSUpdateOneMapping(v)(MeaningExp(exp)(PS))(PS) |
+    MeaningInst (Instruction_List([]))(PS: ProgState) = PS |
+    MeaningInst(Instruction_List(instruction_list_head :: instruction_list_tail))(PS : ProgState) 
+                = MeaningInst(Instruction_List(instruction_list_tail))(MeaningInst(instruction_list_head)(PS)) |  
+    MeaningInst(BooleanExpression_Instruction_Instruction(bexp, inst_branch1, inst_branch2))
+                (PS : ProgState) = if MeaningBoolExp(bexp)(PS) = BoolValue(true)
+                                   then MeaningInst(inst_branch1)(PS)
+                                   else MeaningInst(inst_branch2)(PS) |   
+    MeaningInst(BooleanExpression_Instruction(bexp, inst_body))(PS : ProgState) = 
+                if MeaningBoolExp(bexp)(PS) = BoolValue(true)
+                then MeaningInst(BooleanExpression_Instruction(bexp, inst_body))(MeaningInst(inst_body)(PS))
+                else PS;    
+
+(* --------- 16 ---------*)
+exception ProgramError;
+
+(* --------- 17 ---------*)
+(* MeaningProgram: Program  -> ProgState *) 
+val MeaningProgram = (fn(GLL_Program(declarationList, prog_body)) => 
+                     if ValidProgram(GLL_Program(declarationList, prog_body))
+                     then MeaningInst(prog_body)(PSInitial)
+                     else raise ProgramError
+                     );
+
+                    
