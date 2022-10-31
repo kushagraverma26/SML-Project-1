@@ -528,13 +528,15 @@ val goodCaseFor13 = ValidProgram(finalProgram);
 (* Bad cases *)
 (* Making a program with bad declaration list *)
 val programWithBadDeclarationList = GLL_Program(badDeclarationList, instructionsForProgram);
+
 (* Bad case using bad declaration list: Should raise exception InvalidDeclarationList  *)
-val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList);
+(*val firstBadCaseFor13 = ValidProgram(programWithBadDeclarationList);*)
 
 (* Making a bad program body using a bad instruction *)
 val programWithBadBody = GLL_Program(declarationListForProgram, badInstruction);
+
 (* Bad case using bad program body: Should raise exception InvalidProgramBody *)
-val secondBadCaseFor13 = ValidProgram(programWithBadBody);
+(* val secondBadCaseFor13 = ValidProgram(programWithBadBody); *)
 
 
 (* ----------------- Step 3 ----------------- *)
@@ -570,7 +572,6 @@ fun ArithExpCalculation(IntegerValue(i_1), Minus, IntegerValue(i_2)) = IntegerVa
     ArithExpCalculation(IntegerValue(i_1), Times, IntegerValue(i_2)) = IntegerValue(i_1 * i_2)   |
     ArithExpCalculation(IntegerValue(i_1), Div, IntegerValue(i_2)) = 
                         if i_2 = 0 then raise DivisonError else IntegerValue(i_1 div i_2)        |
-
     (*   Raise exception for Incomptiable Arthimetic Expression type *)   
     ArithExpCalculation(_, _, _) = raise   IncomptiableArthiExp; 
 (* --------- 8 ---------*)
@@ -585,21 +586,29 @@ fun RelaExpCalculation(IntegerValue(i_1), Lt, IntegerValue(i_2)) = BoolValue(i_1
     RelaExpCalculation(IntegerValue(i_1), Ge, IntegerValue(i_2)) = BoolValue(i_1 >= i_2) |
     RelaExpCalculation(IntegerValue(i_1), Gt, IntegerValue(i_2)) = BoolValue(i_1 > i_2)  |
 
-    (*   Raise exception for Incomptiable Realtional Expression type *)  
+    (*   Raise exception for Incomptiable Relational Expression type *)  
     RelaExpCalculation(_, _, _) = raise IncomptiableRelaExp;
+
+(* --------- testing --------- *)
+(* Testing the memory value of a relational expression using two integer constants from our sample GRALL program  *)
+    val GoodCaseFor9 = RelaExpCalculation(IntegerValue(zero), Lt, IntegerValue(one));
 
 (* --------- 10 ---------*)
 exception IncomptiableBoolExp;
 
 (* --------- 11 ---------*)
 (* BoolExpCalculation: MemoryValue * Boolean_Op * MemoryValue -> MemoryValue *)
-
 fun BoolExpCalculation(BoolValue(i_1), And, BoolValue(i_2)) = BoolValue(i_1 andalso i_2) |
     BoolExpCalculation(BoolValue(i_1), Or, BoolValue(i_2)) = BoolValue(i_1 orelse i_2) |
 
     (*   Raise exception for Incomptiable Boolean Expression type *)  
-
     BoolExpCalculation(_, _, _) = raise IncomptiableBoolExp;
+
+(* --------- testing --------- *)
+(* Created two constant boolean variables and tested with a boolean operator using BoolExpCalculation *)
+val constantBooleanForTesting1 = true;
+val constantBooleanForTesting2 = false;
+val GoodCaseFor11 = BoolExpCalculation(BoolValue(constantBooleanForTesting1), Or, BoolValue(constantBooleanForTesting2)); 
 
 (* --------- 12 ---------*)
 (* MeaningIntExp: IntegerExpression * ProgState  MemoryValue *)
@@ -609,10 +618,12 @@ val rec MeaningIntExp = (fn(Constant_IntegerExpression(i_1)) => (fn(PS : ProgSta
                             Arithmetic_Operation_IntegerExpression(iexp1, Arithmatic_Op, iexp2) =>
                                 (fn(PS : ProgState) => ArithExpCalculation(MeaningIntExp(iexp1)(PS), Arithmatic_Op, MeaningIntExp(iexp2)(PS)))
                         );
+(* --------- testing --------- *)
+(* testing Constant_IntegerExpression using a varible from GRALL sample program  *)
+val GoodCaseOneFor12 = MeaningIntExp(Variable_IntegerExpression(sum))(ProgState); 
 
 (* --------- 13 ---------*)
-(* MeaningBoolExp: BooleanExpression * ProgState  MemoryValue *)  
-(*missing a case Relational_Operation_BooleanExpression*)
+(* MeaningBoolExp: BooleanExpression -> ProgState -> MemoryValue *)  
 val rec MeaningBoolExp = (fn(Constant_BooleanExpression(i_1)) => (fn(PS : ProgState) => BoolValue(i_1)) |
                             (Variable_BooleanExpression(v)) => (fn(PS : ProgState) => PS(v))            |
                             (Relational_Operation_BooleanExpression(iexp1, Relational_Op, iexp2)) =>
@@ -633,7 +644,7 @@ fun MeaningExp(IntegerExpression_Expression(iexp)) = (fn(PS : ProgState) => Mean
 fun MeaningInst(Skip)(PS : ProgState) = PS |
     MeaningInst(Variable_Expression_Instruction(v, exp))(PS : ProgState) 
                 = PSUpdateOneMapping(v)(MeaningExp(exp)(PS))(PS) |
-    MeaningInst (Instruction_List([]))(PS: ProgState) = PS |
+    MeaningInst(Instruction_List([]))(PS: ProgState) = PS |
     MeaningInst(Instruction_List(instruction_list_head :: instruction_list_tail))(PS : ProgState) 
                 = MeaningInst(Instruction_List(instruction_list_tail))(MeaningInst(instruction_list_head)(PS)) |  
     MeaningInst(BooleanExpression_Instruction_Instruction(bexp, inst_branch1, inst_branch2))
