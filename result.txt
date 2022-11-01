@@ -676,10 +676,20 @@ val thirdTestCaseFor3 = UnknownValue : MemoryValue
 stdIn:565.93 Warning: calling polyEqual
 val PSUpdateOneMapping = fn
   : Variable -> MemoryValue -> ProgState -> Variable -> MemoryValue
+val myPS1 = fn : Variable -> MemoryValue
+val firstTestCasefor4 = IntValue 2 : MemoryValue
+val secondTestCasefor4 = UnknownValue : MemoryValue
+val myPS2 = fn : Variable -> MemoryValue
+val thirdTestCaseFor4 = IntValue 5 : MemoryValue
+val fourthTestCaseFor4 = IntValue 2 : MemoryValue
+val fifthTestCaseFor4 = UnknownValue : MemoryValue
 exception DivisionError
 exception IncompatibleArithmeticExp
 val ArithExpCalculation = fn
   : MemoryValue * Arithmetic_Op * MemoryValue -> MemoryValue
+val secondGoodCaseFor7 = IntValue ~5 : MemoryValue
+val thirdGoodCaseFor7 = IntValue 800 : MemoryValue
+val fourthGoodCaseFor7 = IntValue 10 : MemoryValue
 exception IncompatibeRelationalExp
 val RelaExpCalculation = fn
   : MemoryValue * Relational_Op * MemoryValue -> MemoryValue
@@ -692,4 +702,6 @@ val MeaningExp = fn : Expression -> ProgState -> MemoryValue
 val MeaningInst = fn : Instruction -> ProgState -> ProgState
 exception ProgramError
 val MeaningProgram = fn : Program -> ProgState
-
+val test = fn : ProgState
+val integerExpressionIPlusOne = IntValue 4 : MemoryValue
+- 

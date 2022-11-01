@@ -566,6 +566,24 @@ fun PSUpdateOneMapping (x: Variable)(mv: MemoryValue)(oldPS: ProgState)(y: Varia
 
 (* ----------------Testing for 4--------------------- *)
 
+(* val myPS1 = PSUpdateOneMapping(v1)(mv1)(PSInitial) *)
+(* myPS1 takes a variable, if the variable is v1 it gives mv1 else applies PSInitial that returns Unknown Value *)
+val myPS1 = PSUpdateOneMapping(i)(IntValue(2))(PSInitial);
+(* Should return IntValue(2) *)
+val firstTestCasefor4 = myPS1(i);
+(* Should return UnknownValue *)
+val secondTestCasefor4 = myPS1(sum);
+
+(* val myPS2 = PSUpdateOneMapping(v2)(mv2)(myPS1) *)
+(* myPS2 takes a variable, if the variable is v2 it gives mv2 else applies myPS1 on that variable *)
+val myPS2 = PSUpdateOneMapping(sum)(IntValue(5))(myPS1);
+(* Should return IntValue(5) *)
+val thirdTestCaseFor4 = myPS2(sum);
+(* Should return IntValue(2) *)
+val fourthTestCaseFor4 = myPS2(i);
+(* Should return UnknownValue *)
+val fifthTestCaseFor4 = myPS2(n);
+
 (* Meaning of Expression *)
 
 (* ----------------5--------------------- *)
@@ -586,6 +604,12 @@ fun ArithExpCalculation (IntValue(i1), Plus, IntValue(i2)) = IntValue(i1 + i2) |
     ArithExpCalculation (_, _, _) = raise IncompatibleArithmeticExp;
 
 (* ----------------Testing for 7--------------------- *)
+
+(* val firstGoodCaseFor7 =  ArithExpCalculation(IntValue(5), Plus, IntValue(5)); *)
+val secondGoodCaseFor7 = ArithExpCalculation(IntValue(15), Minus, IntValue(20));
+val thirdGoodCaseFor7 = ArithExpCalculation(IntValue(20), Times, IntValue(40));
+val fourthGoodCaseFor7 = ArithExpCalculation(IntValue(40), Div, IntValue(4));
+(* val firstBadCaseFor7  = ArithExpCalculation(BoolValue(true), Plus, IntValue(5)); *)
 
 (* ----------------8--------------------- *)
 
@@ -664,3 +688,7 @@ exception ProgramError;
 
 (* MeaningProgram: Program -> ProgState *)
 val MeaningProgram = (fn (GLL_Program(declarationList, prog_body)) => if ValidProgram(GLL_Program(declarationList, prog_body)) then MeaningInst(prog_body)(PSInitial) else raise ProgramError);
+
+val test = MeaningProgram(finalProgram);
+
+val integerExpressionIPlusOne = ArithExpCalculation(MeaningIntExp(integerExpressionIPlusOne)(myPS2), Plus, MeaningIntExp(integerExpressionOne)(myPS2));
