@@ -620,12 +620,13 @@ val rec MeaningIntExp = (fn(Constant_IntegerExpression(i_1)) => (fn(PS : ProgSta
                         );
 (* --------- testing --------- *)
 (* testing Constant_IntegerExpression using a varible from GRALL sample program  *)
-val GoodCaseOneFor12 = MeaningIntExp(Variable_IntegerExpression(sum))(ProgState); 
-
+val GoodCaseOneFor12 = MeaningIntExp(Constant_IntegerExpression(zero)); 
+val GoodCaseTwoFor12 = MeaningIntExp(Variable_IntegerExpression(sum)); 
+val GoodCaseTwoFor12 = MeaningIntExp(Arithmetic_Operation_IntegerExpression(integerExpressionSum, Plus, integerExpressionI)); 
 (* --------- 13 ---------*)
 (* MeaningBoolExp: BooleanExpression -> ProgState -> MemoryValue *)  
 val rec MeaningBoolExp = (fn(Constant_BooleanExpression(i_1)) => (fn(PS : ProgState) => BoolValue(i_1)) |
-                            (Variable_BooleanExpression(v)) => (fn(PS : ProgState) => PS(v))            |
+                            (Variable_IntegerExpression(v)) => (fn(PS : ProgState) => PS(v))            |
                             (Relational_Operation_BooleanExpression(iexp1, Relational_Op, iexp2)) =>
                                 (fn(PS : ProgState) => RelaExpCalculation(MeaningIntExp(iexp1)(PS), Relational_Op, MeaningIntExp(iexp2)(PS))) | 
                             (Boolean_Operation_BooleanExpression(bexp1, Boolean_Op, bexp2)) =>
