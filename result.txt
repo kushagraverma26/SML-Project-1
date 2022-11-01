@@ -658,7 +658,71 @@ val programWithBadDeclarationList =
                             (Variable_IntegerExpression (GLL_Variable "i"),
                              Plus,Constant_IntegerExpression 1)))])])])
   : Program
-
-uncaught exception InvalidDeclarationList
-  raised at: stdIn:519.44-519.66
+val programWithBadBody =
+  GLL_Program
+    ([(GLL_Variable "n",IntegerType),(GLL_Variable "sum",IntegerType),
+      (GLL_Variable "i",IntegerType)],
+     Variable_Expression_Instruction
+       (GLL_Variable "sum",
+        IntegerExpression_Expression
+          (Variable_IntegerExpression (GLL_Variable "newVariable"))))
+  : Program
+datatype MemoryValue = BoolValue of bool | IntValue of int | UnknownValue
+type ProgState = Variable -> MemoryValue
+val PSInitial = fn : Variable -> MemoryValue
+val firstTestCaseFor3 = UnknownValue : MemoryValue
+val secondTestCaseFor3 = UnknownValue : MemoryValue
+val thirdTestCaseFor3 = UnknownValue : MemoryValue
+stdIn:566.65 Warning: calling polyEqual
+val PSUpdateOneMapping = fn
+  : Variable -> MemoryValue -> ProgState -> Variable -> MemoryValue
+val mv1 = IntValue 2 : MemoryValue
+val myPS1 = fn : Variable -> MemoryValue
+val firstTestCasefor4 = IntValue 2 : MemoryValue
+val secondTestCasefor4 = UnknownValue : MemoryValue
+val mv2 = IntValue 5 : MemoryValue
+val myPS2 = fn : Variable -> MemoryValue
+val thirdTestCaseFor4 = IntValue 5 : MemoryValue
+val fourthTestCaseFor4 = IntValue 2 : MemoryValue
+val fifthTestCaseFor4 = UnknownValue : MemoryValue
+exception DivisonError
+exception IncomptiableArthiExp
+val ArithExpCalculation = fn
+  : MemoryValue * Arithmetic_Op * MemoryValue -> MemoryValue
+val firstGoodCaseFor7 = IntValue 10 : MemoryValue
+val secondGoodCaseFor7 = IntValue ~5 : MemoryValue
+val thirdGoodCaseFor7 = IntValue 800 : MemoryValue
+val fourthGoodCaseFor7 = IntValue 10 : MemoryValue
+exception IncomptiableRelaExp
+val RelaExpCalculation = fn
+  : MemoryValue * Relational_Op * MemoryValue -> MemoryValue
+val GoodCaseFor9 = BoolValue true : MemoryValue
+exception IncomptiableBoolExp
+val BoolExpCalculation = fn
+  : MemoryValue * Boolean_Op * MemoryValue -> MemoryValue
+val constantBooleanForTesting1 = true : bool
+val constantBooleanForTesting2 = false : bool
+val GoodCaseFor11 = BoolValue true : MemoryValue
+val MeaningIntExp = fn : IntegerExpression -> ProgState -> MemoryValue
+val GoodCaseOneFor12 = IntValue 0 : MemoryValue
+val GoodCaseTwoFor12 = IntValue 5 : MemoryValue
+val GoodCaseTwoFor12 = IntValue 7 : MemoryValue
+stdIn:681.27-686.141 Error: parameter or result constraints of clauses do not agree [tycon mismatch]
+  this clause:      IntegerExpression -> 'Z
+  previous clauses:      BooleanExpression -> 'Z
+  in declaration:
+    MeaningBoolExp =
+      (fn Constant_BooleanExpression i_1 =>
+            (fn PS : ProgState => BoolValue i_1)
+      | Variable_IntegerExpression v => (fn PS : ProgState => PS v)
+      | Relational_Operation_BooleanExpression (iexp1,Relational_Op,iexp2) =>
+          (fn PS : ProgState =>
+                RelaExpCalculation
+                ((MeaningIntExp iexp1) PS,Relational_Op,
+                 (MeaningIntExp iexp2) PS))
+      | Boolean_Operation_BooleanExpression (bexp1,Boolean_Op,bexp2) =>
+          (fn PS : ProgState =>
+                BoolExpCalculation
+                ((MeaningBoolExp bexp1) PS,Boolean_Op,
+                 (MeaningBoolExp bexp2) PS)))
 - 
