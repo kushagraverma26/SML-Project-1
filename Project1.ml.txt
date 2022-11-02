@@ -662,62 +662,138 @@ val GoodCaseFor11 = BoolExpCalculation(BoolValue(constantBooleanForTesting1), Or
 (* --------- 12 ---------*)
 
 (* MeaningIntExp: IntegerExpression -> ProgState -> MemoryValue *)
-val rec MeaningIntExp = (fn(Constant_IntegerExpression(i_1)) => (fn(PS : ProgState) => IntValue(i_1)) |
-                           (Variable_IntegerExpression(v)) => (fn(PS : ProgState) => PS(v))               |
-                            Arithmetic_Operation_IntegerExpression(iexp1, Arithmatic_Op, iexp2) =>
-                                (fn(PS : ProgState) => ArithExpCalculation(MeaningIntExp(iexp1)(PS), Arithmatic_Op, MeaningIntExp(iexp2)(PS)))
+val rec MeaningIntExp = (fn (Constant_IntegerExpression(i_1)) => (fn(PS : ProgState) => IntValue(i_1)) |
+                            (Variable_IntegerExpression(v)) => (fn(PS : ProgState) => PS(v)) |
+                            (Arithmetic_Operation_IntegerExpression(iexp1, Arithmatic_Op, iexp2)) =>
+                                (fn(PS : ProgState) =>
+                                    ArithExpCalculation(MeaningIntExp(iexp1)(PS), Arithmatic_Op, MeaningIntExp(iexp2)(PS)))
                         );
 
-(* --------- testing for 12 --------- *)
+(* --------- Testing for 12 --------- *)
+
 (* testing Constant_IntegerExpression using a varible from GRALL sample program  *)
-val GoodCaseOneFor12 = MeaningIntExp(Constant_IntegerExpression(zero))(myPS2); 
-val GoodCaseTwoFor12 = MeaningIntExp(Variable_IntegerExpression(sum))(myPS2); 
+(* Using myPS2 as prog state for testing since it has values for Sum and I *)
+(* Should give IntValue(0) *)
+val GoodCaseOneFor12 = MeaningIntExp(Constant_IntegerExpression(zero))(myPS2);
+(* Should give IntValue(5) *)
+val GoodCaseTwoFor12 = MeaningIntExp(Variable_IntegerExpression(sum))(myPS2);
+(* Should give IntValue(7) *)
 val GoodCaseTwoFor12 = MeaningIntExp(Arithmetic_Operation_IntegerExpression(integerExpressionSum, Plus, integerExpressionI))(myPS2);
 
 (* --------- 13 ---------*)
 (* MeaningBoolExp: BooleanExpression -> ProgState -> MemoryValue *)  
-val rec MeaningBoolExp = (fn(Constant_BooleanExpression(i_1)) => (fn(PS : ProgState) => BoolValue(i_1)) |
-                            (Variable_IntegerExpression(v)) => (fn(PS : ProgState) => PS(v))            |
+val rec MeaningBoolExp = (fn(Constant_BooleanExpression(i_1)) => (fn(PS: ProgState) => BoolValue(i_1)) |
+                            (Variable_BooleanExpression(v)) => (fn(PS: ProgState) => PS(v)) |
                             (Relational_Operation_BooleanExpression(iexp1, Relational_Op, iexp2)) =>
-                                (fn(PS : ProgState) => RelaExpCalculation(MeaningIntExp(iexp1)(PS), Relational_Op, MeaningIntExp(iexp2)(PS))) | 
+                                (fn(PS : ProgState) =>
+                                    RelaExpCalculation(MeaningIntExp(iexp1)(PS), Relational_Op, MeaningIntExp(iexp2)(PS))) | 
                             (Boolean_Operation_BooleanExpression(bexp1, Boolean_Op, bexp2)) =>
-                                (fn(PS : ProgState) => BoolExpCalculation(MeaningBoolExp(bexp1)(PS), Boolean_Op, MeaningBoolExp(bexp2)(PS)))
+                                (fn(PS : ProgState) =>
+                                    BoolExpCalculation(MeaningBoolExp(bexp1)(PS), Boolean_Op, MeaningBoolExp(bexp2)(PS)))
                          );      
 
-(* --------- 14 ---------*)
+(* ----------------Testing for 13--------------------- *)
 
+(* Adding boolean to prog state *)
+val myPS3 = PSUpdateOneMapping(booleanVariable)(BoolValue(true))(myPS2);
+(* Good Case *)
+(* Should return BoolValue(false) *)
+val firstGoodCaseFor13 = MeaningBoolExp(constantBooleanExpressionForTesting)(myPS3);
+(* Should return BoolValue(true) *)
+val secondGoodCaseFor13 = MeaningBoolExp(variableBooleanExpressionForTesting)(myPS3);
+
+(* Adding n to prog state *)
+val myPS4 = PSUpdateOneMapping(n)(IntValue(10))(myPS3);
+
+val booleanVariable2 = GLL_Variable("booleanVariable2")
+(* Adding second boolean to ProgState *)
+val myPS5 = PSUpdateOneMapping(booleanVariable2)(BoolValue(false))(myPS4);
+(* Should return BoolValue(false) *)
+val thirdGoodCaseFor13 = MeaningBoolExp(Relational_Operation_BooleanExpression(integerExpressionITimesNDivI, Lt, integerExpressionIPlusOne))(myPS5);
+(* Should return BoolValue(false) *)
+val fourthGoodCaseFor13 = MeaningBoolExp(Boolean_Operation_BooleanExpression(outerIfBooleanExpression, And, whileBooleanExpression))(myPS5);
+
+(* --------- 14 ---------*)
 (* MeaningExp: Expression -> ProgState -> MemoryValue *)
 fun MeaningExp(IntegerExpression_Expression(iexp)) = (fn(PS : ProgState) => MeaningIntExp(iexp)(PS)) |
     MeaningExp(BooleanExpression_Expression(bexp)) = (fn(PS : ProgState) => MeaningBoolExp(bexp)(PS));
 
+(* ----------------Testing for 14--------------------- *)
+
+(*Good Case*)
+
+(* Should give IntValue(0) *)
+val firstGoodCaseFor14 = MeaningExp(IntegerExpression_Expression(integerExpressionNMinusITimesNDivI))(myPS5);
+(* Should return BoolValue(false) *)
+val secondGoodCaseFor14 = MeaningExp(BooleanExpression_Expression(outerIfBooleanExpression))(myPS5);
+
+
 (* 15-17: Meaning of Instruction and Program  *)
 
 (* --------- 15 ---------*)
+
 (* MeaningInst: Instruction -> ProgState -> ProgState *)
 fun MeaningInst(Skip)(PS : ProgState) = PS |
-    MeaningInst(Variable_Expression_Instruction(v, exp))(PS : ProgState) 
-                = PSUpdateOneMapping(v)(MeaningExp(exp)(PS))(PS) |
+    MeaningInst(Variable_Expression_Instruction(v, exp))(PS : ProgState) =
+                PSUpdateOneMapping(v)(MeaningExp(exp)(PS))(PS) |
     MeaningInst(Instruction_List([]))(PS: ProgState) = PS |
-    MeaningInst(Instruction_List(instruction_list_head :: instruction_list_tail))(PS : ProgState) 
-                = MeaningInst(Instruction_List(instruction_list_tail))(MeaningInst(instruction_list_head)(PS)) |  
-    MeaningInst(BooleanExpression_Instruction_Instruction(bexp, inst_branch1, inst_branch2))
-                (PS : ProgState) = if MeaningBoolExp(bexp)(PS) = BoolValue(true)
-                                   then MeaningInst(inst_branch1)(PS)
-                                   else MeaningInst(inst_branch2)(PS) |   
+    MeaningInst(Instruction_List(instruction_list_head :: instruction_list_tail))(PS : ProgState) =
+                MeaningInst(Instruction_List(instruction_list_tail))(MeaningInst(instruction_list_head)(PS)) |  
+    MeaningInst(BooleanExpression_Instruction_Instruction(bexp, inst_branch1, inst_branch2))(PS : ProgState) =
+                if MeaningBoolExp(bexp)(PS) = BoolValue(true)
+                    then MeaningInst(inst_branch1)(PS)
+                else MeaningInst(inst_branch2)(PS) |   
     MeaningInst(BooleanExpression_Instruction(bexp, inst_body))(PS : ProgState) = 
                 if MeaningBoolExp(bexp)(PS) = BoolValue(true)
-                then MeaningInst(BooleanExpression_Instruction(bexp, inst_body))(MeaningInst(inst_body)(PS))
+                    then MeaningInst(BooleanExpression_Instruction(bexp, inst_body))(MeaningInst(inst_body)(PS))
                 else PS;    
+
+(* ----------------Testing for 15--------------------- *)
+
+(* After assignmnet (sum = sum + i), sum should be IntValue(7) *)
+val firstGoodCaseFor15 = MeaningInst(Variable_Expression_Instruction(sum, expressionSumPlusI))(myPS5);
+val verifyingFirstCasefor15 = firstGoodCaseFor15(sum);
+
+(* Testing with non empty instruction list *)
+val secondGoodCaseFor15 = MeaningInst(Instruction_List([iEqualsIPlusOne, sumEqualsSumPlusI]))(myPS5)
+(* Should give IntValue(3) *)
+val verifyingSecondCasefor15ForI = secondGoodCaseFor15(i);
+(* Should give IntValue(8) *)
+val verifyingSecondCasefor15ForSum = secondGoodCaseFor15(sum);
+
+(* Testing for if-then-else *)
+(* The boolean expression should evaluate to false and the else instruction should execute. *)
+val thirdGoodCaseFor15 = MeaningInst(BooleanExpression_Instruction_Instruction(outerIfBooleanExpression, sumEqualsSumPlusI, iEqualsIPlusOne))(myPS5);
+(* Should give IntValue(3) *)
+val verifyingThirdCasefor15ForI = thirdGoodCaseFor15(i);
+(* Should give IntValue(5) *)
+val verifyingThirdCasefor15ForSum = thirdGoodCaseFor15(sum);
+
+(* Testing for while *)
+(* i is 2 but after execution of while loop it should be 10 *)
+val fourthGoodCaseFor15 = MeaningInst(BooleanExpression_Instruction(whileBooleanExpression, iEqualsIPlusOne))(myPS5);
+val verifyingfourthGoodCaseFor15ForI = fourthGoodCaseFor15(i)
+
+(* Testing for  *)
 
 (* --------- 16 ---------*)
 exception ProgramError;
 
 (* --------- 17 ---------*)
 (* MeaningProgram: Program -> ProgState *)
-val MeaningProgram = (fn(GLL_Program(declarationList, prog_body)) => 
-                     if ValidProgram(GLL_Program(declarationList, prog_body))
-                     then MeaningInst(prog_body)(PSInitial)
-                     else raise ProgramError
+val MeaningProgram = (fn(GLL_Program(declarationList, prog_body)) =>
+                        if ValidProgram(GLL_Program(declarationList, prog_body))
+                            then MeaningInst(prog_body)(PSInitial)
+                        else raise ProgramError
                      );
 
+(* Running our sample program *)
 val testingFor17 = MeaningProgram(finalProgram);
+(* After execution of our sample program:
+i should be: 12
+n should be: 12
+sum should be: 16
+*)
+val verifying16ForI = testingFor17(i);
+val verifying16ForN = testingFor17(n);
+val verifying16ForSum = testingFor17(sum);

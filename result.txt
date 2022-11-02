@@ -707,22 +707,33 @@ val MeaningIntExp = fn : IntegerExpression -> ProgState -> MemoryValue
 val GoodCaseOneFor12 = IntValue 0 : MemoryValue
 val GoodCaseTwoFor12 = IntValue 5 : MemoryValue
 val GoodCaseTwoFor12 = IntValue 7 : MemoryValue
-stdIn:681.27-686.141 Error: parameter or result constraints of clauses do not agree [tycon mismatch]
-  this clause:      IntegerExpression -> 'Z
-  previous clauses:      BooleanExpression -> 'Z
-  in declaration:
-    MeaningBoolExp =
-      (fn Constant_BooleanExpression i_1 =>
-            (fn PS : ProgState => BoolValue i_1)
-      | Variable_IntegerExpression v => (fn PS : ProgState => PS v)
-      | Relational_Operation_BooleanExpression (iexp1,Relational_Op,iexp2) =>
-          (fn PS : ProgState =>
-                RelaExpCalculation
-                ((MeaningIntExp iexp1) PS,Relational_Op,
-                 (MeaningIntExp iexp2) PS))
-      | Boolean_Operation_BooleanExpression (bexp1,Boolean_Op,bexp2) =>
-          (fn PS : ProgState =>
-                BoolExpCalculation
-                ((MeaningBoolExp bexp1) PS,Boolean_Op,
-                 (MeaningBoolExp bexp2) PS)))
-- 
+val MeaningBoolExp = fn : BooleanExpression -> ProgState -> MemoryValue
+val myPS3 = fn : Variable -> MemoryValue
+val firstGoodCaseFor13 = BoolValue false : MemoryValue
+val secondGoodCaseFor13 = BoolValue true : MemoryValue
+val myPS4 = fn : Variable -> MemoryValue
+val booleanVariable2 = GLL_Variable "booleanVariable2" : Variable
+val myPS5 = fn : Variable -> MemoryValue
+val thirdGoodCaseFor13 = BoolValue false : MemoryValue
+val fourthGoodCaseFor13 = BoolValue false : MemoryValue
+val MeaningExp = fn : Expression -> ProgState -> MemoryValue
+val firstGoodCaseFor14 = IntValue 0 : MemoryValue
+val secondGoodCaseFor14 = BoolValue false : MemoryValue
+val MeaningInst = fn : Instruction -> ProgState -> ProgState
+val firstGoodCaseFor15 = fn : ProgState
+val verifyingFirstCasefor15 = IntValue 7 : MemoryValue
+val secondGoodCaseFor15 = fn : ProgState
+val verifyingSecondCasefor15ForI = IntValue 3 : MemoryValue
+val verifyingSecondCasefor15ForSum = IntValue 8 : MemoryValue
+val thirdGoodCaseFor15 = fn : ProgState
+val verifyingThirdCasefor15ForI = IntValue 3 : MemoryValue
+val verifyingThirdCasefor15ForSum = IntValue 5 : MemoryValue
+val fourthGoodCaseFor15 = fn : ProgState
+val verifyingfourthGoodCaseFor15ForI = IntValue 10 : MemoryValue
+exception ProgramError
+val MeaningProgram = fn : Program -> ProgState
+val testingFor17 = fn : ProgState
+val verifying16ForI = IntValue 12 : MemoryValue
+val verifying16ForN = IntValue 12 : MemoryValue
+val verifying16ForSum = IntValue 16 : MemoryValue
+
